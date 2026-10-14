@@ -7,8 +7,12 @@
   const stage = "電磁気/第2項/クーロンの法則";
   const $ = id => document.getElementById(id);
   const state = {index:0,score:0,started:0,questionStarted:0,results:[],priorAttempts:0};
+  let sessionToken = "";
   function show(id) { ["home","quiz","result"].forEach(key => $(key).hidden = key !== id); }
-  function token() { return localStorage.getItem(TOKEN_KEY) || ""; }
+  function token() {
+    if (sessionToken) return sessionToken;
+    try { return localStorage.getItem(TOKEN_KEY) || ""; } catch (_) { return ""; }
+  }
   function login() {
     if (AUTH_URL.startsWith("__")) {$("identity").textContent="認証用GASのURLがまだ設定されていません。";return;}
     location.href = AUTH_URL + "?view=auth&return=" + encodeURIComponent(location.href.split("#")[0]);
@@ -30,14 +34,18 @@
   }
   function initialize() {
     const hashToken = new URLSearchParams(location.hash.slice(1)).get("auth");
-    if (hashToken) {localStorage.setItem(TOKEN_KEY,hashToken);history.replaceState(null,"",location.pathname+location.search);}
+    if (hashToken) {
+      sessionToken = hashToken;
+      try { localStorage.setItem(TOKEN_KEY,hashToken); } catch (_) {}
+      try { history.replaceState(null,"",location.pathname+location.search); } catch (_) {}
+    }
     if (AUTH_URL.startsWith("__") || API_URL.startsWith("__")) {
       $("identity").textContent="公開前です。秋学期専用GASの認証用URLと記録用URLを設定してください。";$("progress").textContent="GAS未設定";$("login").removeAttribute("href");return;
     }
     if (!token()) {$("identity").textContent="大学アカウントでログインしてください。";$("progress").textContent="ログイン後に進捗を表示します。";return;}
     $("identity").textContent="大学アカウントの認証情報を確認中…";
     progress(response => {
-      if (!response?.ok) {localStorage.removeItem(TOKEN_KEY);$("identity").textContent="認証を確認できませんでした。ログインボタンからやり直してください。";$("progress").textContent="進捗を読み込めませんでした。";return;}
+      if (!response?.ok) {sessionToken="";try {localStorage.removeItem(TOKEN_KEY);} catch (_) {}$("identity").textContent="認証を確認できませんでした。ログインボタンからやり直してください。";$("progress").textContent="進捗を読み込めませんでした。";return;}
       $("identity").textContent=`ログイン中：${response.studentId}`;
       showProgress(response);$("start").disabled=false;$("login").hidden=true;show("home");
     });

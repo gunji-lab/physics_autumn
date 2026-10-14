@@ -516,7 +516,7 @@ function doGet(e) {
     }
   }
   if (params.view === "auth") {
-    return buildAuthResponse_(params);
+    return buildTrainerAppHtml_();
   }
   if (params.api === "progress") {
     const verified = verifyAuthToken_(params.token);
@@ -552,9 +552,7 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
-  return HtmlService.createHtmlOutput(
-    '<p>Physics Trainer 2 は <a href="' + escapeHtmlServer_(NEW_TRAINER_BASE_URL + '/index.html') + '">こちら</a>から開いてください。</p>'
-  ).setTitle("Physics Trainer 2");
+  return buildTrainerAppHtml_();
 }
 
 function getAuthenticatedStudentId_() {
@@ -632,6 +630,7 @@ function buildTrainerAppHtml_() {
     return buildUniversityAccountGuide_(err.message);
   }
   const studentJson = JSON.stringify(studentId).replace(/</g, "\\u003c");
+  const lessonUrl = NEW_TRAINER_BASE_URL + "/lessons.html#auth=" + encodeURIComponent(createAuthToken_(studentId));
   const appUrl = ScriptApp.getService().getUrl();
   const adminBar = studentId === "ADMIN_GUNJI"
     ? `<div class="admin-bar">教員モード <a href="${escapeHtmlServer_(appUrl + "?view=teacher")}" target="_top">教員ダッシュボードを見る →</a></div>`
@@ -639,7 +638,7 @@ function buildTrainerAppHtml_() {
   return HtmlService.createHtmlOutput(`<!doctype html><html lang="ja"><head><meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1"><title>Physics Trainer 2</title>
   <style>html,body{height:100%;margin:0;background:#f5f7fb}body{display:flex;flex-direction:column}iframe{display:block;width:100%;flex:1;border:0}.admin-bar{padding:9px 16px;background:#f3e8ff;color:#581c87;font:800 14px system-ui,sans-serif}.admin-bar a{float:right;color:#6d28d9}</style></head>
-  <body>${adminBar}<iframe id="trainer" src="${escapeHtmlServer_(NEW_TRAINER_BASE_URL + "/index.html")}" title="物理トレーナー"></iframe>
+  <body>${adminBar}<iframe id="trainer" src="${escapeHtmlServer_(lessonUrl)}" title="物理トレーナー"></iframe>
   <script>
     const studentId = ${studentJson};
     const frame = document.getElementById("trainer");
@@ -663,35 +662,6 @@ function buildTrainerAppHtml_() {
       }
     });
   </script></body></html>`).setTitle("Physics Trainer 2").setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-}
-
-function buildAuthResponse_(params) {
-  const email = Session.getActiveUser().getEmail().trim().toLowerCase();
-  const suffix = "@" + SCHOOL_DOMAIN.toLowerCase();
-  if (!email || !email.endsWith(suffix)) {
-    return HtmlService.createHtmlOutput(
-      "<h2>大学Googleアカウントを確認できませんでした</h2><p>@" +
-      escapeHtmlServer_(SCHOOL_DOMAIN) + " のアカウントで開いてください。</p>"
-    ).setTitle("Physics Trainer ログイン");
-  }
-
-  const studentId = email.slice(0, -suffix.length);
-  if (!/^[0-9A-Za-z._-]{3,30}$/.test(studentId)) {
-    return HtmlService.createHtmlOutput("<p>アカウントから学籍番号を取得できませんでした。</p>")
-      .setTitle("Physics Trainer ログイン");
-  }
-
-  const requested = String(params.return || "");
-  const fallback = NEW_TRAINER_BASE_URL + "/index.html";
-  const returnUrl = requested.indexOf(NEW_TRAINER_BASE_URL) === 0 ? requested : fallback;
-  const token = createAuthToken_(studentId);
-  const destination = returnUrl + "#auth=" + encodeURIComponent(token);
-
-  return HtmlService.createHtmlOutput(`<!doctype html><html lang="ja"><head><meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1"><title>ログイン完了</title>
-    <style>body{font-family:system-ui,sans-serif;background:#f5f7fb;color:#1f2937;margin:0}.card{max-width:560px;margin:10vh auto;background:#fff;border:1px solid #dbe2ea;border-radius:20px;padding:28px;box-shadow:0 12px 32px #1f293714}a{display:inline-block;background:#176b87;color:#fff;text-decoration:none;font-weight:800;padding:12px 18px;border-radius:10px}</style></head>
-    <body><main class="card"><h1>ログインしました</h1><p>学籍番号 ${escapeHtmlServer_(studentId)} として物理トレーナーを利用します。メールアドレス自体は学習記録に保存しません。</p><p><a href="${escapeHtmlServer_(destination)}">トレーナーへ進む</a></p></main></body></html>`)
-    .setTitle("Physics Trainer ログイン");
 }
 
 function createAuthToken_(studentId) {
