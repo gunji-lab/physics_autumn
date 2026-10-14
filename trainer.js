@@ -39,7 +39,7 @@
     progress(response => {
       if (!response?.ok) {localStorage.removeItem(TOKEN_KEY);$("identity").textContent="認証を確認できませんでした。ログインボタンからやり直してください。";$("progress").textContent="進捗を読み込めませんでした。";return;}
       $("identity").textContent=`ログイン中：${response.studentId}`;
-      showProgress(response);$("start").disabled=false;$("login").hidden=true;
+      showProgress(response);$("start").disabled=false;$("login").hidden=true;show("home");
     });
   }
   function start() { if (!token()) {$("identity").textContent="先に大学アカウントでログインしてください。";return;} Object.assign(state,{index:0,score:0,started:Date.now(),results:[]});show("quiz");renderQuestion(); }
