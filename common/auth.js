@@ -42,12 +42,15 @@ window.AutumnAuth = (() => {
     const login = document.getElementById(loginId);
     if (!response?.ok) {
       if (response?.error === "unauthorized") clear();
-      if (identity) identity.textContent = token() ? "進捗を読み込めませんでした。しばらくしてから再読み込みしてください。" : "大学Googleアカウントでログインしてください。";
+      if (identity) {
+        identity.hidden = false;
+        identity.textContent = token() ? "進捗を読み込めませんでした。しばらくしてから再読み込みしてください。" : "大学Googleアカウントでログインしてください。";
+      }
       if (login) login.hidden = false;
       if (content) content.hidden = true;
       return false;
     }
-    if (identity) identity.textContent = `ログイン中：${response.studentId}`;
+    if (identity) identity.hidden = true;
     if (login) login.hidden = true;
     if (content) content.hidden = false;
     decorateLinks();

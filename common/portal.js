@@ -1,7 +1,7 @@
 (() => {
   "use strict";
   const auth = window.AutumnAuth;
-  auth.progress(response => {
+  function render(response) {
     if (!auth.showAccess(response)) return;
     document.querySelectorAll("[data-stage]").forEach(link => {
       const progress = auth.stageMark(link.dataset.stage, response);
@@ -38,5 +38,25 @@
     }
     summary.innerHTML = `<strong>自分の学習状況</strong><div class="summary-values"><span>学習時間 <strong>${timeText}</strong></span><span>挑戦 <strong>${Number(data.attempts || 0)}回</strong></span><span>通常Stage <strong>${Number(data.clearedStages || 0)}/${Number(data.stages || 0)}</strong></span></div>${top10.length ? `<div class="top-ranks">🏆 TOP10：${top10.join("・")}</div>` : ""}`;
     summary.append(links);
-  });
+  }
+  if (window.parent !== window) {
+    let received = false;
+    const fallback = setTimeout(() => {
+      if (!received) auth.progress(response => { if (!received) render(response); });
+    }, 5000);
+    window.addEventListener("message", event => {
+      if (event.source !== window.parent || event.data?.type !== "physics:progressResult") return;
+      if (event.data.response?.ok) {
+        received = true;
+        clearTimeout(fallback);
+        render(event.data.response);
+      } else if (!received) {
+        clearTimeout(fallback);
+        auth.progress(response => { if (!received) render(response); });
+      }
+    });
+    window.parent.postMessage({type:"physics:progress"}, "*");
+  } else {
+    auth.progress(render);
+  }
 })();
