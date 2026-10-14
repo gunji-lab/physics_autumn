@@ -152,6 +152,21 @@ function setupHeaders_(logSheet, countSheet, questionSheet) {
   }
 }
 
+function initializeAutumnSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error("記録用スプレッドシートに紐づいたGASから実行してください。");
+  const logSheet = getOrCreateSheet_(ss, LOG_SHEET_NAME);
+  const countSheet = getOrCreateSheet_(ss, COUNT_SHEET_NAME);
+  const questionSheet = getOrCreateSheet_(ss, QUESTION_SHEET_NAME);
+  setupHeaders_(logSheet, countSheet, questionSheet);
+  const result = {
+    spreadsheetId: ss.getId(),
+    sheets: [LOG_SHEET_NAME, COUNT_SHEET_NAME, QUESTION_SHEET_NAME]
+  };
+  console.log(JSON.stringify(result));
+  return result;
+}
+
 function updateAttempts_(countSheet, studentId, stage, now) {
   const lastRow = countSheet.getLastRow();
 
