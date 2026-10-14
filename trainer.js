@@ -1,7 +1,7 @@
 (() => {
   "use strict";
-  const AUTH_URL = "__AUTH_DEPLOYMENT_URL__";
-  const API_URL = "__API_DEPLOYMENT_URL__";
+  const AUTH_URL = "https://script.google.com/a/macros/toyo.jp/s/AKfycbyqYGXl59oOVeV5FavjX1wDYGePIa8YKcwM3RJAhr2nsvC0dukvapC5MbjlbLhVqPi8/exec";
+  const API_URL = "https://script.google.com/a/macros/toyo.jp/s/AKfycbyZIWvMD6p_n8TvdQye_W3E65Fxx6enAqot8abrRy7Mm5p6uDvgo_9ZxqjqPhye-Z3N/exec";
   const TOKEN_KEY = "physicsTrainerAutumnAuth";
   const unit = window.AUTUMN_UNITS[0];
   const stage = "電磁気/第2項/クーロンの法則";

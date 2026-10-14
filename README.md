@@ -11,9 +11,9 @@
 ## 公開前の設定
 
 1. **秋学期専用の新しいGoogleスプレッドシート**を作成し、そのシートに紐づくApps Scriptへ `gas/physics_trainer_2.gs` を貼り付けます。春学期のシートとスクリプトは変更しません。
-2. `NEW_TRAINER_BASE_URL` を、公開した `physics_autumn` のURL（末尾スラッシュなし）に設定します。例：`https://gunji-lab.github.io/physics_autumn`。
+2. `NEW_TRAINER_BASE_URL` は `https://gunji-lab.github.io/physics_autumn` に設定済みです。実際の公開URLが違う場合は変更してください。認証後の戻り先を決める設定です。
 3. 同じスクリプトからWebアプリのデプロイを**2つ**作成します。認証用は「アクセスしているユーザーとして実行」「大学組織内のみ」。記録用は「自分として実行」「全員」。記録用は公開URLですが、署名付き認証情報がない提出は保存されません。
-4. `trainer.js` の `__AUTH_DEPLOYMENT_URL__` と `__API_DEPLOYMENT_URL__` を、それぞれ認証用・記録用の `/exec` URLに置き換えます。学生には公開した `physics_autumn/index.html` を案内します。トップの「大学アカウントでログイン」ボタンから認証用GASへ移動し、認証後にトップへ戻ります。
+4. `trainer.js` には提供された認証用・記録用の `/exec` URLを設定済みです。学生には公開した `physics_autumn/index.html` を案内します。トップの「大学アカウントでログイン」ボタンから認証用GASへ移動し、認証後にトップへ戻ります。
 5. 大学アカウントで開き、3問に回答して、専用シートの `Log`、`Counts`、`QuestionTimes` に1回分の記録が入り、進捗画面に反映されることを確認します。
 
 大学のメールアドレス全体は学習シートに保存しません。GASが大学Googleアカウントを確認し、学籍番号だけを記録します。テスト時は大学アカウントでの認証とGoogleスプレッドシートへの書き込みを実際に確認してください。

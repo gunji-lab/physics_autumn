@@ -14,7 +14,7 @@ const STAFF_TEST_STUDENT_IDS = {
   "gunji@toyo.jp": "ADMIN_GUNJI"
 };
 // 新システム公開後、そのURLに変更する（末尾の / を含めない）。
-const NEW_TRAINER_BASE_URL = "__NEW_TRAINER_BASE_URL__";
+const NEW_TRAINER_BASE_URL = "https://gunji-lab.github.io/physics_autumn";
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
