@@ -389,41 +389,13 @@ const DASHBOARD_UNIT_HEADERS_ = ["単元", "Unit", "unit", "分野", "カテゴ�
 
 /* 通常Stageだけをメイン進捗の分母にする。大問対策と公式確認は別枠。 */
 const STUDENT_STAGE_CATALOG = [
-  "円運動/Stage1/弧度法",
-  "円運動/Stage2/弧長",
-  "円運動/Stage3/角速度と速さ",
-  "円運動/Stage4/周期角速度速さ",
-  "円運動/Stage5/向心加速度",
-  "円運動/Stage6/記入式",
-  "バネ/Stage1/フックの法則",
-  "バネ/Stage2/つりあい",
-  "バネ/Stage3/位置エネ",
-  "バネ/Stage4/エネ保",
-  "バネ/Stage5/記入式",
-  "力学的エネルギー/Stage1/仕事",
-  "力学的エネルギー/Stage2/位置エネルギー",
-  "力学的エネルギー/Stage3/運動エネルギー",
-  "力学的エネルギー/Stage4/力学的エネルギー保存",
-  "力学的エネルギー/Stage5/仕事とエネルギー",
-  "力学的エネルギー/Stage6/総合記述式",
-  "熱/Stage1/温度変換",
-  "熱/Stage2/熱容量",
-  "熱/Stage3/Q=mcΔT",
-  "熱/Stage4/熱量・熱容量",
-  "熱/Stage5/熱量保存",
-  "熱/Stage6/総合記述式"
+  "電磁気/第2項/クーロンの法則",
+  "電磁気/第3項/電場と電気力線/Level 1",
+  "電磁気/第3項/電場と電気力線/Level 2"
 ];
 
-const STUDENT_BIG_PROBLEM_CATALOG = [
-  "円運動/大問/円錐振り子",
-  "円運動/大問/万有引力",
-  "バネ/test1/円運動するばね",
-  "バネ/test2/水平バネ振り子"
-];
-
-const FINAL_MOCK_STAGE_CATALOG = [
-  "期末試験/模試"
-];
+const STUDENT_BIG_PROBLEM_CATALOG = [];
+const FINAL_MOCK_STAGE_CATALOG = [];
 
 function getSpecialActivitySection_(stage) {
   const value = String(stage || "").trim();
@@ -530,6 +502,7 @@ function doGet(e) {
       ok: true,
       studentId: verified.studentId,
       summary: data.summary,
+      rankings: data.rankings,
       stages: data.stageRows.map(row => ({ stage: row.stage, status: row.status, attempts: row.attempts }))
     });
   }
@@ -568,12 +541,13 @@ function getAuthenticatedStudentId_() {
 }
 
 function buildUniversityAccountGuide_(detail) {
-  const retryUrl = ScriptApp.getService().getUrl() + "?view=auth";
+  const appUrl = ScriptApp.getService().getUrl() + "?view=auth";
+  const chooser = "https://accounts.google.com/AccountChooser?hd=toyo.jp&continue=" + encodeURIComponent(appUrl);
+  const addAccount = "https://accounts.google.com/AddSession?hl=ja&continue=" + encodeURIComponent(appUrl);
   const message = detail ? `<p class="notice">${escapeHtmlServer_(detail)}</p>` : "";
   return HtmlService.createHtmlOutput(`<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>大学アカウントでログイン｜物理2</title><style>
-    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#1f2937;background:#f6f7fb}
-    *{box-sizing:border-box}body{margin:0;line-height:1.7}.wrap{max-width:760px;margin:0 auto;padding:28px 16px 48px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:24px;box-shadow:0 10px 28px rgba(0,0,0,.07)}h1{margin:0 0 8px;font-size:1.7rem}.lead{color:#6b7280;margin:0 0 20px}.notice{margin:16px 0;padding:12px 14px;border-left:5px solid #93c5fd;background:#eff6ff;border-radius:10px;color:#475569}.button{display:inline-block;border-radius:12px;padding:12px 16px;font-weight:800;background:#2563eb;color:#fff;text-decoration:none}.button:hover{background:#1d4ed8}.back{margin-top:20px}.back a{color:#2563eb}.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}@media(max-width:560px){.card{padding:18px}}
-  </style></head><body><div class="wrap"><main class="card"><h1>大学Googleアカウントでログイン</h1><p class="lead">物理2（秋学期）トレーナー</p><p>東洋大学のGoogleアカウント（<strong>@toyo.jp</strong>）を選択してください。</p>${message}<div class="buttons"><a class="button" href="https://accounts.google.com/AccountChooser?hd=toyo.jp" target="_top">大学アカウントを選ぶ</a></div><div class="back"><a href="${escapeHtmlServer_(retryUrl)}" target="_top">選択後にもう一度開く</a></div></main></div></body></html>`).setTitle("大学アカウントでログイン｜物理2");
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#1f2937;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;line-height:1.7}.wrap{width:min(640px,calc(100% - 32px));margin:8vh auto}.card{background:#fff;border:1px solid #dbe2ea;border-radius:20px;padding:28px;box-shadow:0 12px 32px #1f293714}h1{margin:0}.notice{margin:16px 0;padding:12px 14px;border-left:5px solid #93c5fd;background:#eff6ff;border-radius:10px;color:#475569}.options{display:grid;gap:12px;margin:22px 0}.options a{display:block;padding:14px 18px;border-radius:12px;background:#176b87;color:#fff;text-decoration:none;font-weight:900;text-align:center}.options a.outline{background:#fff;border:1px solid #176b87;color:#176b87}.muted{color:#64748b;font-size:.92rem}@media(max-width:560px){.card{padding:18px}}
+  </style></head><body><main class="wrap"><section class="card"><h1>大学Googleアカウントでログイン</h1><p>物理トレーナーは <strong>@toyo.jp</strong> の大学アカウント専用です。個人Gmailだけでログインしている場合は、先に大学アカウントを追加してください。</p>${message}<div class="options"><a href="${escapeHtmlServer_(addAccount)}" target="_top">大学アカウントを追加してログイン</a><a class="outline" href="${escapeHtmlServer_(chooser)}" target="_top">追加済みの大学アカウントを選ぶ</a></div><p class="muted">うまく切り替わらない場合は、シークレット／プライベートウィンドウでこのページを開き、大学アカウントだけでログインしてください。</p></section></main></body></html>`).setTitle("大学アカウントでログイン｜物理2");
 }
 
 function saveAuthenticatedResult(payload) {
@@ -1873,11 +1847,13 @@ function getStudentDashboardData_(studentId) {
 }
 
 function buildStudentSectionRows_(logs, clearedStageNames) {
-  const sections = ["円運動", "バネ", "熱"];
+  const sections = ["電荷とクーロンの法則", "電場と電気力線"];
 
   const regularRows = sections.map(section => {
     const stages = STUDENT_STAGE_CATALOG
-      .filter(stage => stage.indexOf(section + "/") === 0);
+      .filter(stage => section === "電荷とクーロンの法則"
+        ? stage.indexOf("電磁気/第2項/") === 0
+        : stage.indexOf("電磁気/第3項/") === 0);
     const stageSet = new Set(stages);
     const sectionLogs = logs.filter(row => stageSet.has(String(row["Stage"] || "")));
     const scoreSum = sectionLogs.reduce((sum, row) => sum + Number(row["得点"] || 0), 0);
@@ -1938,7 +1914,7 @@ function buildStudentSectionRows_(logs, clearedStageNames) {
     averageTotal: finalMock ? finalMock.averageTotal : 0
   };
 
-  return regularRows.concat([bigProblemRow, finalMockRow]);
+  return regularRows;
 }
 
 function buildStudentRecommendations_(stageRows) {
@@ -2621,11 +2597,11 @@ function buildTeacherDashboardHtml_() {
           <div class="table-wrap"><table id="stageTable"></table></div>
         </section>
       </div>
-      <section>
+      <section style="display:none">
         <h2>期末試験模試</h2>
         <div class="table-wrap"><table id="specialTable"></table></div>
       </section>
-      <div class="grid-two">
+      <div class="grid-two" style="display:none">
         <section>
           <h2>期末試験模試の最近の提出</h2>
           <div class="table-wrap"><table id="finalMockAttemptsTable"></table></div>
