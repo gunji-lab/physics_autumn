@@ -503,6 +503,9 @@ function doGet(e) {
       studentId: verified.studentId,
       summary: data.summary,
       rankings: data.rankings,
+      teacherDashboardUrl: verified.studentId === "ADMIN_GUNJI"
+        ? "https://script.google.com/a/macros/toyo.jp/s/AKfycbyqYGXl59oOVeV5FavjX1wDYGePIa8YKcwM3RJAhr2nsvC0dukvapC5MbjlbLhVqPi8/exec?view=teacher"
+        : "",
       stages: data.stageRows.map(row => ({ stage: row.stage, status: row.status, attempts: row.attempts }))
     });
   }

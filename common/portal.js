@@ -29,9 +29,9 @@
     const links = document.createElement("div");
     links.className = "dashboard-links";
     links.append(dashboard);
-    if (response.studentId === "ADMIN_GUNJI") {
+    if (response.teacherDashboardUrl) {
       const teacher = document.createElement("a");
-      teacher.href = auth.AUTH_URL + "?view=teacher";
+      teacher.href = response.teacherDashboardUrl;
       teacher.target = "_top";
       teacher.textContent = "教員ダッシュボードを見る →";
       links.append(teacher);
