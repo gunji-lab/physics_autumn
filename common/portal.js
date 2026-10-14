@@ -80,6 +80,7 @@
       if (event.source !== window.parent || !event.data) return;
       if (event.data.type === "physics:identity") {
         verifiedTeacher = event.data.studentId === "ADMIN_GUNJI";
+        if (verifiedTeacher) auth.showTeacherBar(event.data.studentId);
         renderSummary(latestProgress);
       }
       if (event.data.type === "physics:progressResult") {
