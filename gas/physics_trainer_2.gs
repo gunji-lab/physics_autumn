@@ -568,7 +568,12 @@ function getAuthenticatedStudentId_() {
 }
 
 function buildUniversityAccountGuide_(detail) {
-  return HtmlService.createHtmlOutput(`<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>大学アカウントでログイン</title><style>body{font-family:system-ui,sans-serif;background:#f5f7fb;color:#1f2937;margin:0}.card{max-width:620px;margin:10vh auto;background:#fff;border:1px solid #dbe2ea;border-radius:20px;padding:28px}a{display:inline-block;background:#176b87;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:800}</style></head><body><main class="card"><h1>大学Googleアカウントでログインしてください</h1><p>個人Googleアカウントでは物理トレーナーを利用できません。Googleのアカウント選択画面で <strong>@toyo.jp</strong> のアカウントを選択してください。</p><p>${escapeHtmlServer_(detail || "")}</p><p><a href="https://accounts.google.com/AccountChooser?hd=toyo.jp">アカウントを切り替える</a></p></main></body></html>`).setTitle("大学アカウントでログイン");
+  const retryUrl = ScriptApp.getService().getUrl() + "?view=auth";
+  const message = detail ? `<p class="notice">${escapeHtmlServer_(detail)}</p>` : "";
+  return HtmlService.createHtmlOutput(`<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>大学アカウントでログイン｜物理2</title><style>
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#1f2937;background:#f6f7fb}
+    *{box-sizing:border-box}body{margin:0;line-height:1.7}.wrap{max-width:760px;margin:0 auto;padding:28px 16px 48px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:24px;box-shadow:0 10px 28px rgba(0,0,0,.07)}h1{margin:0 0 8px;font-size:1.7rem}.lead{color:#6b7280;margin:0 0 20px}.notice{margin:16px 0;padding:12px 14px;border-left:5px solid #93c5fd;background:#eff6ff;border-radius:10px;color:#475569}.button{display:inline-block;border-radius:12px;padding:12px 16px;font-weight:800;background:#2563eb;color:#fff;text-decoration:none}.button:hover{background:#1d4ed8}.back{margin-top:20px}.back a{color:#2563eb}.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}@media(max-width:560px){.card{padding:18px}}
+  </style></head><body><div class="wrap"><main class="card"><h1>大学Googleアカウントでログイン</h1><p class="lead">物理2（秋学期）トレーナー</p><p>東洋大学のGoogleアカウント（<strong>@toyo.jp</strong>）を選択してください。</p>${message}<div class="buttons"><a class="button" href="https://accounts.google.com/AccountChooser?hd=toyo.jp" target="_top">大学アカウントを選ぶ</a></div><div class="back"><a href="${escapeHtmlServer_(retryUrl)}" target="_top">選択後にもう一度開く</a></div></main></div></body></html>`).setTitle("大学アカウントでログイン｜物理2");
 }
 
 function saveAuthenticatedResult(payload) {
