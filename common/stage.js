@@ -22,9 +22,16 @@
   function visibleSeconds(start,paused,ongoing){return Math.max(0,Math.round((Date.now()-start-paused-(ongoing?Date.now()-ongoing:0))/1000));}
   function setScreen(name){["startScreen","quizScreen","finishScreen"].forEach(id=>$(id).hidden=id!==name);}
   function start(source=null){
-    quiz=shuffle(source || cfg.questions).map(questionWithChoices);wrong=[];index=0;score=0;results=[];
+    const sourceQuestions=source || cfg.questions;
+    quiz=(cfg.shuffleQuestions===false?[...sourceQuestions]:shuffle(sourceQuestions)).map(questionWithChoices);wrong=[];index=0;score=0;results=[];
     sessionStart=Date.now();hiddenMs=0;hiddenStart=document.hidden?sessionStart:0;
     setScreen("quizScreen");showQuestion();
+  }
+  function updateAnswerReady(){
+    const q=quiz[index];
+    if(q.kind==="number")return;
+    const reason=q.reasonPrompt?$("reasonInput")?.value.trim():"";
+    $("answerBtn").disabled=selected<0 || (q.reasonPrompt && !reason);
   }
   function showQuestion(){
     const q=quiz[index];selected=-1;answered=false;questionStart=Date.now();questionHiddenMs=0;questionHiddenStart=document.hidden?questionStart:0;
@@ -42,9 +49,15 @@
     }else{
       q.choices.forEach((choice,n)=>{
         const button=document.createElement("button");button.className="choice";button.textContent=`${["①","②","③","④","⑤"][n] || n+1}　${choice}`;
-        button.addEventListener("click",()=>{if(answered)return;selected=n;$("choices").querySelectorAll(".choice").forEach(x=>x.classList.remove("selected"));button.classList.add("selected");$("answerBtn").disabled=false;});
+        button.addEventListener("click",()=>{if(answered)return;selected=n;$("choices").querySelectorAll(".choice").forEach(x=>x.classList.remove("selected"));button.classList.add("selected");updateAnswerReady();});
         $("choices").appendChild(button);
       });
+      if(q.reasonPrompt){
+        const label=document.createElement("label");label.className="reason-label";label.htmlFor="reasonInput";label.textContent=q.reasonPrompt;
+        const textarea=document.createElement("textarea");textarea.id="reasonInput";textarea.className="reason-input";textarea.rows=4;textarea.placeholder="理由を自分の言葉で書いてください";
+        textarea.addEventListener("input",updateAnswerReady);
+        $("writtenArea").append(label,textarea);
+      }
     }
   }
   function numericValue(raw){
@@ -66,7 +79,9 @@
     }
     answered=true;if(correct)score++;else wrong.push(q);
     const elapsedSeconds=visibleSeconds(questionStart,questionHiddenMs,questionHiddenStart);
-    results.push({id:q.id,type:q.kind==="number"?"数値入力":"選択式",correct,selected:response,answer,prompt:q.prompt,elapsedSeconds});
+    const reason=q.reasonPrompt?$("reasonInput").value.trim():"";
+    if(reason)$("reasonInput").disabled=true;
+    results.push({id:q.id,type:q.kind==="number"?"数値入力":"選択式",correct,selected:reason?`${response}／理由：${reason}`:response,answer,prompt:q.prompt,elapsedSeconds});
     $("feedback").className="feedback "+(correct?"ok":"ng");
     $("feedback").innerHTML=`<strong>${correct?"正解！":"不正解"}</strong><br>正解：<strong>${escapeHtml(answer)}</strong><div class="formula">${escapeHtml(q.explanation || "")}</div>`;
     $("currentScore").textContent=`正解 ${score}`;$("answerBtn").disabled=true;$("nextBtn").disabled=false;
