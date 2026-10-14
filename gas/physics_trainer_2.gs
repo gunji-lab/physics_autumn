@@ -552,17 +552,9 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
-  const key = String((e && e.parameter && e.parameter.key) || "");
-  if (DASHBOARD_KEY && key !== DASHBOARD_KEY) {
-    return HtmlService
-      .createHtmlOutput("<p>閲覧権限がありません。</p>")
-      .setTitle("Physics Trainer Dashboard");
-  }
-
-  return HtmlService
-    .createHtmlOutput(buildTeacherDashboardHtml_())
-    .setTitle("Physics Trainer Dashboard")
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  return HtmlService.createHtmlOutput(
+    '<p>Physics Trainer 2 は <a href="' + escapeHtmlServer_(NEW_TRAINER_BASE_URL + '/index.html') + '">こちら</a>から開いてください。</p>'
+  ).setTitle("Physics Trainer 2");
 }
 
 function getAuthenticatedStudentId_() {
