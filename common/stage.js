@@ -5,6 +5,7 @@
   if (!cfg || !auth) return;
   const $ = id => document.getElementById(id);
   let quiz=[],wrong=[],index=0,score=0,selected=-1,answered=false,results=[],priorAttempts=0;
+  let pendingPayload=null,saving=false;
   let sessionStart=0,questionStart=0,hiddenStart=0,hiddenMs=0,questionHiddenMs=0,questionHiddenStart=0;
   const shuffle = values => {const a=[...values];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
   const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
@@ -105,21 +106,49 @@
   function confirmSave(attempt=0){
     auth.progress(response=>{
       const item=response?.ok && (response.stages || []).find(row=>row.stage===cfg.stage);
-      if(Number(item?.attempts || 0)>priorAttempts){priorAttempts=Number(item.attempts);$("sendStatus").textContent="学習履歴を保存しました。";return;}
+      if(Number(item?.attempts || 0)>priorAttempts){priorAttempts=Number(item.attempts);saving=false;pendingPayload=null;$("sendStatus").textContent="学習履歴を保存しました。";return;}
       if(attempt<5)setTimeout(()=>confirmSave(attempt+1),1500);
-      else $("sendStatus").textContent="保存を確認できませんでした。教員にご連絡ください。";
+      else saveFailed("保存を確認できませんでした。スプレッドシートを確認してから再送してください。");
     });
+  }
+  function saveFailed(message){
+    saving=false;
+    $("sendStatus").textContent=message;
+    $("retrySaveBtn").hidden=false;
+  }
+  function sendPending(){
+    if(!pendingPayload||saving)return;
+    saving=true;$("retrySaveBtn").hidden=true;$("sendStatus").textContent="結果を保存中…";
+    if(window.parent!==window){
+      const requestId="autumn_save_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+      const timer=setTimeout(()=>{window.removeEventListener("message",receive);saveFailed("保存結果を確認できませんでした。スプレッドシートを確認してから再送してください。");},20000);
+      function receive(event){
+        const data=event.data||{};
+        if(event.source!==window.parent||data.type!=="physics:saveResult"||data.requestId!==requestId)return;
+        clearTimeout(timer);window.removeEventListener("message",receive);
+        if(!data.ok){saveFailed("保存できませんでした。理由："+(data.message||"不明なエラー"));return;}
+        saving=false;pendingPayload=null;
+        const result=data.result||{};
+        const debug=auth.token().split(".")[0]==="ADMIN_GUNJI"&&result.spreadsheetId
+          ?`（保存先ID: ${result.spreadsheetId} / Log ${result.logRow||"-"}行目）`:"";
+        $("sendStatus").textContent="学習履歴を保存しました。"+debug;
+      }
+      window.addEventListener("message",receive);
+      window.parent.postMessage({type:"physics:save",requestId,payload:pendingPayload},"*");
+      return;
+    }
+    fetch(auth.API_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(pendingPayload)})
+      .then(()=>{$("sendStatus").textContent="保存を確認中…";confirmSave();})
+      .catch(()=>saveFailed("送信できませんでした。通信を確認して再送してください。"));
   }
   function finish(){
     setScreen("finishScreen");$("barFill").style.width="100%";
     const rate=Math.round(score/quiz.length*100),elapsed=visibleSeconds(sessionStart,hiddenMs,hiddenStart);
     $("finalScore").textContent=`${score} / ${quiz.length} 問正解（${rate}%）`;
     $("finalMessage").innerHTML=`<div class="${rate>=70?"pass":"fail"}">${rate>=70?"クリア！":"解説を確認して、もう一度挑戦しましょう。"}</div><div class="session-note">所要時間：${Math.floor(elapsed/60)}分${elapsed%60}秒</div>`;
-    $("reviewBtn").hidden=!wrong.length;$("sendStatus").textContent="結果を送信中…";
-    const payload={authToken:auth.token(),stage:cfg.stage,score,total:quiz.length,elapsed,questionTimes:results.map(x=>x.elapsedSeconds),questionResults:results,userAgent:navigator.userAgent,screen:`${innerWidth}x${innerHeight}`};
-    fetch(auth.API_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
-      .then(()=>{$("sendStatus").textContent="保存を確認中…";confirmSave();})
-      .catch(()=>{$("sendStatus").textContent="送信できませんでした。通信を確認してください。";});
+    $("reviewBtn").hidden=!wrong.length;
+    pendingPayload={authToken:auth.token(),stage:cfg.stage,score,total:quiz.length,elapsed,questionTimes:results.map(x=>x.elapsedSeconds),questionResults:results,userAgent:navigator.userAgent,screen:`${innerWidth}x${innerHeight}`};
+    sendPending();
   }
   $("startBtn").addEventListener("click",()=>start());
   $("answerBtn").addEventListener("click",check);
@@ -127,6 +156,7 @@
   $("restartBtn").addEventListener("click",()=>{if(confirm("ここまでの回答を中断して最初に戻りますか？"))setScreen("startScreen");});
   $("againBtn").addEventListener("click",()=>start());
   $("reviewBtn").addEventListener("click",()=>start(wrong));
+  $("retrySaveBtn").addEventListener("click",sendPending);
   auth.progress(response=>{
     if(!auth.showAccess(response))return;
     priorAttempts=auth.stageMark(cfg.stage,response).attempts;
