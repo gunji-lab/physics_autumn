@@ -4,6 +4,7 @@ window.AutumnAuth = (() => {
   const AUTH_URL = "https://script.google.com/a/macros/toyo.jp/s/AKfycbyqYGXl59oOVeV5FavjX1wDYGePIa8YKcwM3RJAhr2nsvC0dukvapC5MbjlbLhVqPi8/exec";
   const TOKEN_KEY = "physicsTrainerAutumnAuth";
   let sessionToken = "";
+  let teacherBarInParent = false;
   const hashToken = new URLSearchParams(location.hash.slice(1)).get("auth");
   if (hashToken) {
     sessionToken = hashToken;
@@ -27,6 +28,7 @@ window.AutumnAuth = (() => {
     document.querySelectorAll("a[data-auth-link]").forEach(a => { a.href = link(a.getAttribute("href")); });
   }
   function showTeacherBar(studentId) {
+    if (teacherBarInParent) return;
     if (studentId !== "ADMIN_GUNJI" && token().split(".")[0] !== "ADMIN_GUNJI") return;
     if (document.getElementById("teacherBar")) return;
     const bar = document.createElement("div");
@@ -34,6 +36,10 @@ window.AutumnAuth = (() => {
     bar.className = "teacher-bar";
     bar.innerHTML = `教員モード <a href="${AUTH_URL}?view=teacher" target="_top">教員ダッシュボードを見る →</a>`;
     document.body.prepend(bar);
+  }
+  function setTeacherBarInParent(value) {
+    teacherBarInParent = Boolean(value);
+    if (teacherBarInParent) document.getElementById("teacherBar")?.remove();
   }
   function progress(callback) {
     if (!token()) { callback({ok:false,error:"missing_token"}); return; }
@@ -75,5 +81,5 @@ window.AutumnAuth = (() => {
     return {text:`${cleared?"✓ クリア":"○ 未クリア"}｜${attempts}回挑戦`,cleared,attempts};
   }
   showTeacherBar();
-  return {API_URL,AUTH_URL,token,clear,link,decorateLinks,showTeacherBar,progress,showAccess,stageMark};
+  return {API_URL,AUTH_URL,token,clear,link,decorateLinks,showTeacherBar,setTeacherBarInParent,progress,showAccess,stageMark};
 })();
