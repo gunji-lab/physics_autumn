@@ -8,7 +8,7 @@
   const $ = id => document.getElementById(id);
   const state = {index:0,score:0,started:0,questionStarted:0,results:[],priorAttempts:0};
   let sessionToken = "";
-  function show(id) { ["home","quiz","result"].forEach(key => $(key).hidden = key !== id); }
+  function show(id) { ["units","quiz","result"].forEach(key => $(key).hidden = key !== id); }
   function token() {
     if (sessionToken) return sessionToken;
     try { return localStorage.getItem(TOKEN_KEY) || ""; } catch (_) { return ""; }
@@ -47,7 +47,9 @@
     progress(response => {
       if (!response?.ok) {sessionToken="";try {localStorage.removeItem(TOKEN_KEY);} catch (_) {}$("identity").textContent="認証を確認できませんでした。ログインボタンからやり直してください。";$("progress").textContent="進捗を読み込めませんでした。";return;}
       $("identity").textContent=`ログイン中：${response.studentId}`;
-      showProgress(response);$("start").disabled=false;$("login").hidden=true;show("home");
+      showProgress(response);$("start").disabled=false;$("login").hidden=true;
+      $("fieldLink").href = "electric_field/index.html#auth=" + encodeURIComponent(token());
+      show("units");
     });
   }
   function start() { if (!token()) {$("identity").textContent="先に大学アカウントでログインしてください。";return;} Object.assign(state,{index:0,score:0,started:Date.now(),results:[]});show("quiz");renderQuestion(); }
