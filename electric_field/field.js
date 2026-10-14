@@ -64,6 +64,15 @@
     const q = level.questions[index];questionStarted=Date.now();
     $("count").textContent=`${index + 1} / ${level.questions.length} 問`;$("prompt").textContent=q.prompt;
     $("feedback").textContent="";$("next").hidden=true;$("choices").replaceChildren();
+    if (q.kind === "number") {
+      const label=document.createElement("label");label.textContent=`数値で答える（単位：${q.unit}）`;
+      const input=document.createElement("input");input.type="text";input.inputMode="decimal";input.placeholder="例：60000 または 6e4";input.setAttribute("aria-label",`${q.unit}での答え`);
+      input.style.cssText="font:inherit;width:100%;padding:12px;border:1px solid #b8cbd6;border-radius:10px";
+      const button=document.createElement("button");button.textContent="回答する";
+      button.addEventListener("click",()=>answerNumber(input,button));
+      input.addEventListener("keydown",event=>{if(event.key==="Enter")answerNumber(input,button);});
+      label.appendChild(input);$("choices").append(label,button);input.focus();return;
+    }
     q.choices.forEach((choice,selected) => {
       const button=document.createElement("button");button.textContent=choice;
       button.addEventListener("click",()=>answer(selected));$("choices").appendChild(button);
@@ -73,6 +82,20 @@
     const q=level.questions[index],correct=selected===q.answer;score+=Number(correct);
     results.push({id:q.id,type:"選択式",correct,selected:q.choices[selected],answer:q.choices[q.answer],prompt:q.prompt,elapsedSeconds:Math.round((Date.now()-questionStarted)/1000)});
     [...$("choices").children].forEach((button,n)=>{button.disabled=true;if(n===q.answer)button.classList.add("correct");else if(n===selected)button.classList.add("wrong");});
+    $("feedback").textContent=`${correct?"正解です。":"もう一度確認しましょう。"} ${q.explanation}`;
+    $("next").textContent=index+1===level.questions.length?"結果を見る":"次へ";$("next").hidden=false;
+  }
+  function answerNumber(input,button) {
+    if (button.disabled) return;
+    const raw=input.value.trim();
+    const normalized=raw.normalize("NFKC").replace(/[,，\s]/g,"").replace(/[×xX*]10\^?([+-]?\d+)/,"e$1");
+    const value=Number(normalized);
+    if (!raw || !Number.isFinite(value)) {$("feedback").textContent="数値を入力してください。指数表記は 6e4 のように入力できます。";input.focus();return;}
+    const q=level.questions[index];
+    const correct=Math.abs(value-q.answer)<=Math.max(Math.abs(q.answer)*0.01,1e-12);
+    score+=Number(correct);
+    results.push({id:q.id,type:"数値入力",correct,selected:raw,answer:`${q.answer} ${q.unit}`,prompt:q.prompt,elapsedSeconds:Math.round((Date.now()-questionStarted)/1000)});
+    input.disabled=true;button.disabled=true;
     $("feedback").textContent=`${correct?"正解です。":"もう一度確認しましょう。"} ${q.explanation}`;
     $("next").textContent=index+1===level.questions.length?"結果を見る":"次へ";$("next").hidden=false;
   }

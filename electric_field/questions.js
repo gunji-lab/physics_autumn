@@ -14,10 +14,10 @@ window.FIELD_LEVELS = {
     title: "電場の基礎演習 · Level 2",
     stage: "電磁気/第3項/電場と電気力線/Level 2",
     questions: [
-      {id:"ef2-01",prompt:"+3.0 μC の電荷が 0.18 N の力を受ける。電場の強さはいくら？",choices:["6.0×10³ N/C","6.0×10⁴ N/C","5.4×10⁵ N/C"],answer:1,explanation:"E = F/q = 0.18/(3.0×10⁻⁶) = 6.0×10⁴ N/C。"},
-      {id:"ef2-02",prompt:"5.0×10⁴ N/C の電場に −2.0 μC の電荷を置く。受ける力の大きさと向きは？",choices:["0.10 N、電場と同じ向き","0.10 N、電場と反対向き","0.025 N、電場と反対向き"],answer:1,explanation:"大きさは |q|E = 0.10 N。負電荷なので力は電場と反対向きです。"},
-      {id:"ef2-03",prompt:"+4.0 nC の点電荷から 0.30 m の点の電場の強さは？（k = 9.0×10⁹ N·m²/C²）",choices:["40 N/C","4.0×10³ N/C","400 N/C"],answer:2,explanation:"E = kQ/r² = (9.0×10⁹)(4.0×10⁻⁹)/(0.30)² = 400 N/C。"},
-      {id:"ef2-04",prompt:"点電荷から 0.20 m の点で電場が 800 N/C だった。距離を 0.40 m にすると電場の強さは？",choices:["200 N/C","400 N/C","1600 N/C"],answer:0,explanation:"点電荷による電場は距離の2乗に反比例します。距離が2倍なので 800/4 = 200 N/C。"}
+      {id:"ef2-01",prompt:"+3.0 μC の電荷が 0.18 N の力を受ける。電場の強さはいくら？",kind:"number",unit:"N/C",answer:60000,explanation:"E = F/q = 0.18/(3.0×10⁻⁶) = 6.0×10⁴ N/C。"},
+      {id:"ef2-02",prompt:"5.0×10⁴ N/C の電場に −2.0 μC の電荷を置く。受ける力の大きさはいくら？",kind:"number",unit:"N",answer:0.1,explanation:"大きさは |q|E = 0.10 N。負電荷なので向きは電場と反対です。"},
+      {id:"ef2-03",prompt:"+4.0 nC の点電荷から 0.30 m の点の電場の強さは？（k = 9.0×10⁹ N·m²/C²）",kind:"number",unit:"N/C",answer:400,explanation:"E = kQ/r² = (9.0×10⁹)(4.0×10⁻⁹)/(0.30)² = 400 N/C。"},
+      {id:"ef2-04",prompt:"点電荷から 0.20 m の点で電場が 800 N/C だった。距離を 0.40 m にすると電場の強さは？",kind:"number",unit:"N/C",answer:200,explanation:"点電荷による電場は距離の2乗に反比例します。距離が2倍なので 800/4 = 200 N/C。"}
     ]
   }
 };
