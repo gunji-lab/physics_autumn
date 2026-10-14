@@ -32,7 +32,7 @@
     const hashToken = new URLSearchParams(location.hash.slice(1)).get("auth");
     if (hashToken) {localStorage.setItem(TOKEN_KEY,hashToken);history.replaceState(null,"",location.pathname+location.search);}
     if (AUTH_URL.startsWith("__") || API_URL.startsWith("__")) {
-      $("identity").textContent="公開前です。秋学期専用GASの認証用URLと記録用URLを設定してください。";$("progress").textContent="GAS未設定";$("login").disabled=true;return;
+      $("identity").textContent="公開前です。秋学期専用GASの認証用URLと記録用URLを設定してください。";$("progress").textContent="GAS未設定";$("login").removeAttribute("href");return;
     }
     if (!token()) {$("identity").textContent="大学アカウントでログインしてください。";$("progress").textContent="ログイン後に進捗を表示します。";return;}
     $("identity").textContent="大学アカウントの認証情報を確認中…";
@@ -74,7 +74,7 @@
       .then(()=>{$("sendStatus").textContent="保存を確認中…";confirmSave();})
       .catch(()=>{$("sendStatus").textContent="送信できませんでした。通信を確認してください。";});
   }
-  $("start").disabled=true;$("login").addEventListener("click",login);$("start").addEventListener("click",start);$("retry").addEventListener("click",start);
+  $("start").disabled=true;$("start").addEventListener("click",start);$("retry").addEventListener("click",start);
   $("next").addEventListener("click",()=>{state.index++;state.index<unit.questions.length?renderQuestion():finish();});
   initialize();
 })();
