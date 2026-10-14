@@ -679,6 +679,85 @@ function getAuthSecret_() {
   return secret;
 }
 
+const LECTURE_EXERCISE_STAGE_ = "電磁気/第3項/電場と電気力線/講義内演習①";
+const LECTURE_EXERCISE_QUESTIONS_ = [
+  { id: "ef-lecture1-01", label: "① 電場の向き" },
+  { id: "ef-lecture1-02", label: "② 電荷を取り除いたとき" },
+  { id: "ef-lecture1-03a", label: "③(a) 電荷の符号と電場" },
+  { id: "ef-lecture1-03b", label: "③(b) 負電荷が受ける力" },
+  { id: "ef-lecture1-04a", label: "④(a) 電荷を2倍にしたときの電場" },
+  { id: "ef-lecture1-04b", label: "④(b) 電荷を2倍にしたときの力" },
+  { id: "ef-lecture1-05", label: "⑤ 電場の強さと向き" }
+];
+
+function getLectureExerciseSnapshot() {
+  if (getAuthenticatedStudentId_() !== "ADMIN_GUNJI") throw new Error("教員アカウント専用です。");
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const logSheet = ss.getSheetByName(LOG_SHEET_NAME);
+  const questionSheet = ss.getSheetByName(QUESTION_SHEET_NAME);
+  const logs = logSheet ? readSheetObjects_(logSheet) : [];
+  const questionRows = questionSheet ? readSheetObjects_(questionSheet) : [];
+  return buildLectureExerciseSnapshot_(logs, questionRows, getLectureEnrollmentCount_());
+}
+
+function getLectureEnrollmentCount_() {
+  const value = Number(PropertiesService.getScriptProperties().getProperty("PHYSICS_AUTUMN_LECTURE_ENROLLMENT") || 0);
+  return Number.isInteger(value) && value > 0 ? value : 0;
+}
+
+function saveLectureEnrollmentCount(count) {
+  if (getAuthenticatedStudentId_() !== "ADMIN_GUNJI") throw new Error("教員アカウント専用です。");
+  const value = Number(count);
+  if (!Number.isInteger(value) || value < 1 || value > 1000) throw new Error("履修者数は1〜1000の整数で入力してください。");
+  PropertiesService.getScriptProperties().setProperty("PHYSICS_AUTUMN_LECTURE_ENROLLMENT", String(value));
+  return getLectureExerciseSnapshot();
+}
+
+function buildLectureExerciseSnapshot_(logs, questionRows, enrollmentCount) {
+  const submitters = new Set((logs || [])
+    .filter(row => String(row["Stage"] || "") === LECTURE_EXERCISE_STAGE_ && !isExcludedStudent_(row["学籍番号"]))
+    .map(row => String(row["学籍番号"] || "").trim())
+    .filter(Boolean));
+  const latestByStudent = new Map();
+  (questionRows || []).forEach(row => {
+    if (String(row["Stage"] || "") !== LECTURE_EXERCISE_STAGE_) return;
+    const id = String(row["学籍番号"] || "").trim();
+    if (!id || isExcludedStudent_(id)) return;
+    const attempt = Number(row["Stage挑戦回数"] || 0);
+    const current = latestByStudent.get(id);
+    if (!current || attempt > current.attempt) latestByStudent.set(id, { attempt, rows: [row] });
+    else if (attempt === current.attempt) current.rows.push(row);
+  });
+  const stats = new Map(LECTURE_EXERCISE_QUESTIONS_.map(item => [item.id, { id: item.id, label: item.label, answered: 0, correct: 0 }]));
+  latestByStudent.forEach(entry => {
+    const seen = new Set();
+    entry.rows.forEach(row => {
+      const id = String(row["問題ID"] || "");
+      if (seen.has(id) || !stats.has(id)) return;
+      seen.add(id);
+      const item = stats.get(id);
+      item.answered++;
+      if (String(row["正誤"] || "") === "○") item.correct++;
+    });
+  });
+  const questions = Array.from(stats.values()).map(item => ({
+    id: item.id,
+    label: item.label,
+    answered: item.answered,
+    correct: item.correct,
+    correctRate: item.answered ? Math.round(item.correct / item.answered * 100) : null
+  }));
+  const enrollment = Number(enrollmentCount || 0);
+  return {
+    stage: LECTURE_EXERCISE_STAGE_,
+    submitted: submitters.size,
+    enrollment,
+    submissionRate: enrollment > 0 ? Math.round(submitters.size / enrollment * 100) : null,
+    questions,
+    generatedAt: new Date().toISOString()
+  };
+}
+
 function getTeacherDashboardData(filters) {
   filters = filters || {};
 
@@ -2524,10 +2603,16 @@ function buildTeacherDashboardHtml_() {
       padding: 24px;
       color: var(--muted);
     }
+    .lecture-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}
+    .lecture-head h2{margin:0;padding:0;border:0;font-size:16px}
+    .lecture-settings{display:flex;gap:8px;align-items:end;flex-wrap:wrap}.lecture-settings input{width:95px}.lecture-settings button{min-height:38px}
+    .lecture-summary{display:flex;gap:18px;flex-wrap:wrap;padding:14px;border-bottom:1px solid var(--line)}.lecture-summary strong{font-size:22px}.lecture-note{color:var(--muted);font-size:12px;padding:0 14px 12px}
+    .lecture-questions{display:grid;gap:9px;padding:14px}.lecture-question{display:grid;grid-template-columns:minmax(180px,1.8fr) minmax(100px,2fr) 70px 90px;gap:12px;align-items:center}.lecture-track{height:10px;background:#e9edf4;border-radius:99px;overflow:hidden}.lecture-fill{display:block;height:100%;background:#15803d}.lecture-fill.mid{background:#b45309}.lecture-fill.low{background:#b91c1c}.lecture-rate{font-weight:900}.lecture-count{color:var(--muted);font-size:12px;text-align:right}
     @media (max-width: 900px) {
       header, main { padding-left: 14px; padding-right: 14px; }
       .filters, .visual-grid, .grid-two, .bottleneck-grid { grid-template-columns: 1fr; }
       header { position: static; }
+      .lecture-question{grid-template-columns:1fr 70px}.lecture-question .lecture-track{grid-column:1}.lecture-question .lecture-count{grid-column:1 / -1;text-align:left}
     }
   </style>
 </head>
@@ -2567,6 +2652,14 @@ function buildTeacherDashboardHtml_() {
       <div class="kpi"><div class="label">学生1人あたり累計時間</div><div class="value" id="kpiStudentTime">-</div></div>
       <div class="kpi"><div class="label">学生1人あたり累計自習時間</div><div class="value" id="kpiStudentOutOfClassTime">-</div></div>
     </div>
+
+    <section id="lectureOverview">
+      <div class="lecture-head"><h2>講義内演習：演習問題</h2><div class="lecture-settings"><label>履修者数（提出率の分母）<input id="lectureEnrollment" type="number" min="1" max="1000" step="1" placeholder="人数"></label><button id="saveLectureEnrollment" type="button">保存</button></div></div>
+      <div class="lecture-summary"><div>提出者 <strong id="lectureSubmitted">-</strong></div><div>提出率 <strong id="lectureSubmissionRate">-</strong></div></div>
+      <div class="lecture-note">各小問の正答率は、学生ごとの最新の提出で集計します。教員のテスト回答は含みません。</div>
+      <div id="lectureQuestions" class="lecture-questions"><div class="muted">読み込み中...</div></div>
+      <div id="lectureStatus" class="lecture-note"></div>
+    </section>
 
     <div class="tabs">
       <button class="tab active" data-view="overview" type="button">概況</button>
@@ -2698,6 +2791,20 @@ function buildTeacherDashboardHtml_() {
     document.getElementById("refreshButton").addEventListener("click", () => {
       resetQuestionData();
       loadData();
+      loadLectureSnapshot();
+    });
+    document.getElementById("saveLectureEnrollment").addEventListener("click", () => {
+      const count = document.getElementById("lectureEnrollment").value;
+      document.getElementById("lectureStatus").textContent = "履修者数を保存中...";
+      google.script.run
+        .withSuccessHandler(data => {
+          renderLectureSnapshot(data);
+          document.getElementById("lectureStatus").textContent = "履修者数を保存しました。";
+        })
+        .withFailureHandler(error => {
+          document.getElementById("lectureStatus").textContent = "保存できませんでした: " + error.message;
+        })
+        .saveLectureEnrollmentCount(count);
     });
     document.getElementById("unitFilter").addEventListener("change", () => {
       document.getElementById("stageFilter").value = "";
@@ -2751,6 +2858,33 @@ function buildTeacherDashboardHtml_() {
           document.getElementById("loading").textContent = "読み込みに失敗しました: " + error.message;
         })
         .getTeacherDashboardData(filters);
+    }
+
+    function loadLectureSnapshot() {
+      google.script.run
+        .withSuccessHandler(renderLectureSnapshot)
+        .withFailureHandler(error => {
+          document.getElementById("lectureQuestions").textContent = "演習データを読み込めませんでした: " + error.message;
+        })
+        .getLectureExerciseSnapshot();
+    }
+
+    function renderLectureSnapshot(data) {
+      document.getElementById("lectureEnrollment").value = data.enrollment || "";
+      document.getElementById("lectureSubmitted").textContent = data.enrollment
+        ? data.submitted + " / " + data.enrollment + "人"
+        : data.submitted + "人";
+      document.getElementById("lectureSubmissionRate").textContent = data.submissionRate === null
+        ? "—" : data.submissionRate + "%";
+      const target = document.getElementById("lectureQuestions");
+      target.innerHTML = (data.questions || []).map(row => {
+        const rate = row.correctRate;
+        const tone = rate === null ? "" : rate < 50 ? "low" : rate < 70 ? "mid" : "";
+        return '<div class="lecture-question"><div>' + escapeHtml(row.label) + '</div>' +
+          '<div class="lecture-track"><span class="lecture-fill ' + tone + '" style="width:' + (rate === null ? 0 : rate) + '%"></span></div>' +
+          '<div class="lecture-rate">' + (rate === null ? "—" : rate + "%") + '</div>' +
+          '<div class="lecture-count">' + row.correct + ' / ' + row.answered + '人正解</div></div>';
+      }).join("");
     }
 
     function renderDashboard(data) {
@@ -3124,6 +3258,7 @@ function buildTeacherDashboardHtml_() {
     }
 
     loadData();
+    loadLectureSnapshot();
   </script>
 </body>
 </html>`;
