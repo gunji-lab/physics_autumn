@@ -29,7 +29,10 @@
   }
   function updateAnswerReady(){
     const q=quiz[index];
-    if(q.kind==="number")return;
+    if(q.kind==="number"){
+      $("answerBtn").disabled=!$("answerInput")?.value.trim() || Boolean(q.directionChoices && !$("directionInput")?.value);
+      return;
+    }
     const reason=q.reasonPrompt?$("reasonInput")?.value.trim():"";
     $("answerBtn").disabled=selected<0 || (q.reasonPrompt && !reason);
   }
@@ -43,9 +46,17 @@
       const row=document.createElement("div");row.className="answer-row";
       const input=document.createElement("input");input.id="answerInput";input.inputMode="decimal";input.autocomplete="off";input.placeholder="数値を入力（例：6e4）";input.setAttribute("aria-label","数値の答え");
       const unit=document.createElement("span");unit.className="unit";unit.textContent=q.unit || "";
-      input.addEventListener("input",()=>{$("answerBtn").disabled=!input.value.trim();});
+      input.addEventListener("input",updateAnswerReady);
       input.addEventListener("keydown",event=>{if(event.key==="Enter"&&!$("answerBtn").disabled)check();});
       row.append(input,unit);$("writtenArea").appendChild(row);input.focus();
+      if(q.directionChoices){
+        const label=document.createElement("label");label.className="reason-label";label.htmlFor="directionInput";label.textContent="電場の向き";
+        const select=document.createElement("select");select.id="directionInput";select.className="direction-input";
+        const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="向きを選んでください";select.appendChild(placeholder);
+        q.directionChoices.forEach(direction=>{const option=document.createElement("option");option.value=direction;option.textContent=direction;select.appendChild(option);});
+        select.addEventListener("change",updateAnswerReady);
+        $("writtenArea").append(label,select);
+      }
     }else{
       q.choices.forEach((choice,n)=>{
         const button=document.createElement("button");button.className="choice";button.textContent=`${["①","②","③","④","⑤"][n] || n+1}　${choice}`;
@@ -70,8 +81,13 @@
     if(q.kind==="number"){
       response=$("answerInput").value.trim();const value=numericValue(response);
       if(!Number.isFinite(value)){$("feedback").className="feedback ng";$("feedback").textContent="数値を入力してください。指数表記は 6e4 のように入力できます。";return;}
-      correct=Math.abs(value-q.answer)<=Math.max(Math.abs(q.answer)*0.01,1e-12);
-      answer=`${q.answer} ${q.unit}`;$("answerInput").disabled=true;
+      const direction=q.directionChoices?$("directionInput").value:"";
+      if(q.directionChoices && !direction)return;
+      correct=Math.abs(value-q.answer)<=Math.max(Math.abs(q.answer)*0.01,1e-12) && (!q.directionChoices || direction===q.directionAnswer);
+      answer=`${q.answerLabel || q.answer} ${q.unit || ""}${q.directionChoices?`・${q.directionAnswer}`:""}`;
+      if(direction)response+=` ${q.unit || ""}・${direction}`;
+      $("answerInput").disabled=true;
+      if(q.directionChoices)$("directionInput").disabled=true;
     }else{
       if(selected<0)return;
       response=q.choices[selected];answer=q.choices[q.answer];correct=selected===q.answer;
