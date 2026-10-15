@@ -404,10 +404,7 @@ const DASHBOARD_UNIT_HEADERS_ = ["単元", "Unit", "unit", "分野", "カテゴ�
 
 /* 通常Stageだけをメイン進捗の分母にする。大問対策と公式確認は別枠。 */
 const STUDENT_STAGE_CATALOG = [
-  "電磁気/第2項/クーロンの法則",
-  "電磁気/第3項/電場と電気力線/講義内演習①",
-  "電磁気/第3項/電場と電気力線/Level 1",
-  "電磁気/第3項/電場と電気力線/Level 2"
+  "電磁気/第3項/電場と電気力線/講義内演習①"
 ];
 
 const STUDENT_BIG_PROBLEM_CATALOG = [];
@@ -628,7 +625,7 @@ function buildTrainerAppHtml_() {
     return buildUniversityAccountGuide_(err.message);
   }
   const studentJson = JSON.stringify(studentId).replace(/</g, "\\u003c");
-  const lessonUrl = NEW_TRAINER_BASE_URL + "/lessons.html#auth=" + encodeURIComponent(createAuthToken_(studentId));
+  const lessonUrl = NEW_TRAINER_BASE_URL + "/lessons.html?v=20261015-class1#auth=" + encodeURIComponent(createAuthToken_(studentId));
   const appUrl = ScriptApp.getService().getUrl();
   const adminBar = studentId === "ADMIN_GUNJI"
     ? `<div class="admin-bar">教員モード <a href="${escapeHtmlServer_(appUrl + "?view=teacher")}" target="_top">教員ダッシュボードを見る →</a></div>`
@@ -1945,13 +1942,11 @@ function getStudentDashboardData_(studentId) {
 }
 
 function buildStudentSectionRows_(logs, clearedStageNames) {
-  const sections = ["電荷とクーロンの法則", "電場と電気力線"];
+  const sections = ["電場と電気力線"];
 
   const regularRows = sections.map(section => {
     const stages = STUDENT_STAGE_CATALOG
-      .filter(stage => section === "電荷とクーロンの法則"
-        ? stage.indexOf("電磁気/第2項/") === 0
-        : stage.indexOf("電磁気/第3項/") === 0);
+      .filter(stage => stage.indexOf("電磁気/第3項/") === 0);
     const stageSet = new Set(stages);
     const sectionLogs = logs.filter(row => stageSet.has(String(row["Stage"] || "")));
     const scoreSum = sectionLogs.reduce((sum, row) => sum + Number(row["得点"] || 0), 0);
