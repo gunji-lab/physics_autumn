@@ -121,7 +121,7 @@
     saving=true;$("retrySaveBtn").hidden=true;$("sendStatus").textContent="結果を保存中…";
     if(window.parent!==window){
       const requestId="autumn_save_"+Date.now()+"_"+Math.random().toString(36).slice(2);
-      const timer=setTimeout(()=>{window.removeEventListener("message",receive);saveFailed("保存結果を確認できませんでした。スプレッドシートを確認してから再送してください。");},20000);
+      const timer=setTimeout(()=>{window.removeEventListener("message",receive);saveFailed("保存結果の確認がタイムアウトしました。教員に伝えてください。再送は、保存済みか確認してから行ってください。");},60000);
       function receive(event){
         const data=event.data||{};
         if(event.source!==window.parent||data.type!=="physics:saveResult"||data.requestId!==requestId)return;

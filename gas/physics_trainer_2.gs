@@ -18,7 +18,7 @@ const NEW_TRAINER_BASE_URL = "https://gunji-lab.github.io/physics_autumn";
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  lock.waitLock(30000);
 
   try {
     if (!e || !e.postData || !e.postData.contents) {
@@ -567,11 +567,10 @@ function buildUniversityAccountGuide_(detail) {
 }
 
 function saveAuthenticatedResult(payload) {
-  const studentId = getAuthenticatedStudentId_();
-  const safePayload = Object.assign({}, payload || {}, {
-    studentId,
-    authToken: createAuthToken_(studentId)
-  });
+  const verified = verifyAuthToken_(payload && payload.authToken);
+  if (!verified.ok) throw new Error("ログインの有効期限が切れました。大学アカウントでログインし直してください。");
+  const studentId = verified.studentId;
+  const safePayload = Object.assign({}, payload || {}, { studentId });
   const output = doPost({ postData: { contents: JSON.stringify(safePayload) } });
   const result = JSON.parse(output.getContent());
   if (result.result !== "success") throw new Error(result.message || "結果を保存できませんでした。");
