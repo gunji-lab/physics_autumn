@@ -157,9 +157,15 @@
   $("againBtn").addEventListener("click",()=>start());
   $("reviewBtn").addEventListener("click",()=>start(wrong));
   $("retrySaveBtn").addEventListener("click",sendPending);
-  auth.progress(response=>{
-    if(!auth.showAccess(response))return;
-    priorAttempts=auth.stageMark(cfg.stage,response).attempts;
+  if(window.parent!==window && auth.token()){
+    // The parent GAS has already authenticated the student. Saving is verified there too.
+    auth.showAccess({ok:true});
     $("startBtn").disabled=false;
-  });
+  }else{
+    auth.progress(response=>{
+      if(!auth.showAccess(response))return;
+      priorAttempts=auth.stageMark(cfg.stage,response).attempts;
+      $("startBtn").disabled=false;
+    });
+  }
 })();
