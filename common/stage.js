@@ -100,7 +100,7 @@
     if(reason)$("reasonInput").disabled=true;
     results.push({id:q.id,type:q.kind==="number"?"数値入力":"選択式",correct,selected:reason?`${response}／理由：${reason}`:response,answer,prompt:q.prompt,elapsedSeconds});
     $("feedback").className="feedback "+(correct?"ok":"ng");
-    $("feedback").innerHTML=`<strong>${correct?"正解！":"不正解"}</strong><br>正解：<strong>${escapeHtml(answer)}</strong><div class="formula">${escapeHtml(q.explanation || "")}</div>`;
+    $("feedback").innerHTML=`<strong>${correct?"正解！":"不正解"}</strong><br>正解：<strong>${escapeHtml(answer)}</strong>${cfg.showExplanations===false?"":`<div class="formula">${escapeHtml(q.explanation || "")}</div>`}`;
     $("currentScore").textContent=`正解 ${score}`;$("answerBtn").disabled=true;$("nextBtn").disabled=false;
   }
   function confirmSave(attempt=0){
