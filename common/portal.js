@@ -10,7 +10,7 @@
     const links = document.createElement("div");
     links.className = "dashboard-links";
     const student = document.createElement("a");
-    student.href = auth.AUTH_URL + "?view=my";
+    student.href = response?.dashboardUrl || auth.AUTH_URL + (auth.token().split(".")[0] === "GUNJI_TEST" ? "?view=studentTestMy" : "?view=my");
     student.target = "_top";
     student.textContent = "詳しい学習状況を見る →";
     links.append(student);

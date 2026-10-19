@@ -13,6 +13,7 @@ const AUTH_SECRET_PROPERTY = "PHYSICS_AUTUMN_AUTH_SECRET";
 const STAFF_TEST_STUDENT_IDS = {
   "gunji@toyo.jp": "ADMIN_GUNJI"
 };
+const GUNJI_STUDENT_TEST_ID = "GUNJI_TEST";
 // 新システム公開後、そのURLに変更する（末尾の / を含めない）。
 const NEW_TRAINER_BASE_URL = "https://gunji-lab.github.io/physics_autumn";
 
@@ -491,6 +492,15 @@ function doGet(e) {
       return buildUniversityAccountGuide_(err.message);
     }
   }
+  if (params.view === "studentTestMy") {
+    try {
+      if (getAuthenticatedStudentId_() !== "ADMIN_GUNJI") throw new Error("教員テスト専用です。");
+      return HtmlService.createHtmlOutput(buildStudentDashboardHtml_(GUNJI_STUDENT_TEST_ID))
+        .setTitle("学生テスト用の学習状況").setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    } catch (err) {
+      return buildUniversityAccountGuide_(err.message);
+    }
+  }
   if (params.view === "teacher") {
     try {
       if (getAuthenticatedStudentId_() !== "ADMIN_GUNJI") throw new Error("教員アカウント専用です。");
@@ -502,6 +512,9 @@ function doGet(e) {
   }
   if (params.view === "auth") {
     return buildTrainerAppHtml_();
+  }
+  if (params.view === "studentTest") {
+    return buildTrainerAppHtml_(true);
   }
   if (params.api === "progress") {
     const verified = verifyAuthToken_(params.token);
@@ -516,6 +529,9 @@ function doGet(e) {
       studentId: verified.studentId,
       summary: data.summary,
       rankings: data.rankings,
+      dashboardUrl: verified.studentId === GUNJI_STUDENT_TEST_ID
+        ? ScriptApp.getService().getUrl() + "?view=studentTestMy"
+        : ScriptApp.getService().getUrl() + "?view=my",
       teacherDashboardUrl: verified.studentId === "ADMIN_GUNJI"
         ? "https://script.google.com/a/macros/toyo.jp/s/AKfycbyqYGXl59oOVeV5FavjX1wDYGePIa8YKcwM3RJAhr2nsvC0dukvapC5MbjlbLhVqPi8/exec?view=teacher"
         : "",
@@ -600,15 +616,17 @@ function debugLatestAdminGunjiRows() {
   console.log("ADMIN_GUNJI latest QuestionTimes rows:", JSON.stringify(questions.slice(-10), null, 2));
 }
 
-function getAuthenticatedProgressForApp() {
-  const studentId = getAuthenticatedStudentId_();
+function getAuthenticatedProgressForApp(studentTest) {
+  const authenticatedId = getAuthenticatedStudentId_();
+  const studentId = studentTest && authenticatedId === "ADMIN_GUNJI"
+    ? GUNJI_STUDENT_TEST_ID : authenticatedId;
   const data = getStudentDashboardData_(studentId);
   return {
     ok: true,
     studentId,
     summary: data.summary,
     rankings: data.rankings,
-    dashboardUrl: ScriptApp.getService().getUrl() + "?view=my",
+    dashboardUrl: ScriptApp.getService().getUrl() + (studentId === GUNJI_STUDENT_TEST_ID ? "?view=studentTestMy" : "?view=my"),
     teacherDashboardUrl: studentId === "ADMIN_GUNJI"
       ? ScriptApp.getService().getUrl() + "?view=teacher"
       : "",
@@ -616,15 +634,19 @@ function getAuthenticatedProgressForApp() {
   };
 }
 
-function buildTrainerAppHtml_() {
+function buildTrainerAppHtml_(studentTest) {
   let studentId;
   try {
     studentId = getAuthenticatedStudentId_();
+    if (studentTest) {
+      if (studentId !== "ADMIN_GUNJI") throw new Error("教員テスト専用です。");
+      studentId = GUNJI_STUDENT_TEST_ID;
+    }
   } catch (err) {
     return buildUniversityAccountGuide_(err.message);
   }
   const studentJson = JSON.stringify(studentId).replace(/</g, "\\u003c");
-  const lessonUrl = NEW_TRAINER_BASE_URL + "/lessons.html?v=20261015-class1#auth=" + encodeURIComponent(createAuthToken_(studentId));
+  const lessonUrl = NEW_TRAINER_BASE_URL + "/lessons.html?v=20261020-student-test#auth=" + encodeURIComponent(createAuthToken_(studentId));
   const appUrl = ScriptApp.getService().getUrl();
   const adminBar = studentId === "ADMIN_GUNJI"
     ? `<div class="admin-bar">教員モード <a href="${escapeHtmlServer_(appUrl + "?view=teacher")}" target="_top">教員ダッシュボードを見る →</a></div>`
@@ -635,6 +657,7 @@ function buildTrainerAppHtml_() {
   <body>${adminBar}<iframe id="trainer" src="${escapeHtmlServer_(lessonUrl)}" title="物理トレーナー"></iframe>
   <script>
     const studentId = ${studentJson};
+    const studentTest = ${Boolean(studentTest)};
     const frame = document.getElementById("trainer");
     function sendIdentity(){ frame.contentWindow.postMessage({type:"physics:identity",studentId,teacherBarInParent:studentId==="ADMIN_GUNJI"},"*"); }
     frame.addEventListener("load", sendIdentity);
@@ -652,7 +675,7 @@ function buildTrainerAppHtml_() {
         google.script.run
           .withSuccessHandler(response => frame.contentWindow.postMessage({type:"physics:progressResult",response},"*"))
           .withFailureHandler(error => frame.contentWindow.postMessage({type:"physics:progressResult",response:{ok:false,error:error.message}},"*"))
-          .getAuthenticatedProgressForApp();
+          .getAuthenticatedProgressForApp(studentTest);
       }
     });
   </script></body></html>`).setTitle("Physics Trainer 2").setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
