@@ -22,7 +22,24 @@
       </div>
     </main>
   </div>
-  <script src="../common/auth.js"></script>
-  <script src="../common/portal.js?v=20261020-student-test"></script>
+  <script>
+    (() => {
+      const localPreview = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+      if (localPreview) {
+        document.getElementById("identity").hidden = true;
+        document.getElementById("loginArea").hidden = true;
+        document.getElementById("content").hidden = false;
+        return;
+      }
+      const auth = document.createElement("script");
+      auth.src = "../common/auth.js";
+      auth.onload = () => {
+        const portal = document.createElement("script");
+        portal.src = "../common/portal.js?v=20261020-student-test";
+        document.body.appendChild(portal);
+      };
+      document.body.appendChild(auth);
+    })();
+  </script>
 </body>
 </html>
