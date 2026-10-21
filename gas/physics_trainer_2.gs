@@ -653,7 +653,7 @@ function buildTrainerAppHtml_(studentTest) {
     : "";
   return HtmlService.createHtmlOutput(`<!doctype html><html lang="ja"><head><meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1"><title>Physics Trainer 2</title>
-  <style>html,body{height:100%;margin:0;background:#f5f7fb}body{display:flex;flex-direction:column}iframe{display:block;width:100%;flex:1;border:0}.admin-bar{padding:9px 16px;background:#f3e8ff;color:#581c87;font:800 14px system-ui,sans-serif}.admin-bar a{float:right;color:#6d28d9}</style></head>
+  <style>html,body{height:100%;margin:0;background:#f5f7fb;overflow-x:hidden}body{display:flex;min-width:0;flex-direction:column}iframe{display:block;width:1px;min-width:100%;max-width:100%;min-height:0;flex:1;border:0}.admin-bar{padding:9px 16px;background:#f3e8ff;color:#581c87;font:800 14px system-ui,sans-serif}.admin-bar a{float:right;color:#6d28d9}</style></head>
   <body>${adminBar}<iframe id="trainer" src="${escapeHtmlServer_(lessonUrl)}" title="物理トレーナー"></iframe>
   <script>
     const studentId = ${studentJson};
