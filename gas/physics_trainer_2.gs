@@ -409,7 +409,10 @@ const STUDENT_STAGE_CATALOG = [
   "電磁気/第3項/電場と電気力線/Level 1",
   "電磁気/第3項/電場と電気力線/Level 2",
   "電磁気/第3項/電場と電気力線/Level 3",
-  "電磁気/第4回/電位/講義内演習①"
+  "電磁気/第4回/電位/講義内演習①",
+  "電磁気/第4回/電位/Level 1",
+  "電磁気/第4回/電位/Level 2",
+  "電磁気/第4回/電位/Level 3"
 ];
 
 const STUDENT_BIG_PROBLEM_CATALOG = [];
