@@ -405,7 +405,8 @@ const DASHBOARD_UNIT_HEADERS_ = ["単元", "Unit", "unit", "分野", "カテゴ�
 
 /* 通常Stageだけをメイン進捗の分母にする。大問対策と公式確認は別枠。 */
 const STUDENT_STAGE_CATALOG = [
-  "電磁気/第3項/電場と電気力線/講義内演習①"
+  "電磁気/第3項/電場と電気力線/講義内演習①",
+  "電磁気/第4回/電位/講義内演習①"
 ];
 
 const STUDENT_BIG_PROBLEM_CATALOG = [];
@@ -1964,11 +1965,14 @@ function getStudentDashboardData_(studentId) {
 }
 
 function buildStudentSectionRows_(logs, clearedStageNames) {
-  const sections = ["電場と電気力線"];
+  const sections = [
+    { section: "電場と電気力線", prefix: "電磁気/第3項/" },
+    { section: "電位", prefix: "電磁気/第4回/" }
+  ];
 
-  const regularRows = sections.map(section => {
+  const regularRows = sections.map(item => {
     const stages = STUDENT_STAGE_CATALOG
-      .filter(stage => stage.indexOf("電磁気/第3項/") === 0);
+      .filter(stage => stage.indexOf(item.prefix) === 0);
     const stageSet = new Set(stages);
     const sectionLogs = logs.filter(row => stageSet.has(String(row["Stage"] || "")));
     const scoreSum = sectionLogs.reduce((sum, row) => sum + Number(row["得点"] || 0), 0);
@@ -1978,7 +1982,7 @@ function buildStudentSectionRows_(logs, clearedStageNames) {
 
     return {
       kind: "stage",
-      section,
+      section: item.section,
       attempts: sectionLogs.length,
       clearedStages,
       totalStages,

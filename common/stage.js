@@ -12,7 +12,7 @@
   const questionWithChoices = question => {
     if (question.kind === "number") return {...question};
     const answerText=question.choices[question.answer];
-    const choices=shuffle(question.choices);
+    const choices=cfg.shuffleChoices===false?[...question.choices]:shuffle(question.choices);
     return {...question,choices,answer:choices.indexOf(answerText)};
   };
   document.addEventListener("visibilitychange",()=>{
@@ -37,10 +37,26 @@
     const reason=q.reasonPrompt?$("reasonInput")?.value.trim():"";
     $("answerBtn").disabled=selected<0 || (q.reasonPrompt && !reason);
   }
+  function renderQuestionContext(q){
+    const box=$("questionContext");
+    if(!box)return;
+    box.replaceChildren();
+    if(!q.group&&!q.context&&!q.formula&&!q.visual){box.hidden=true;return;}
+    box.hidden=false;box.className="question-context";
+    if(q.group){const heading=document.createElement("h2");heading.textContent=q.group;box.appendChild(heading);}
+    if(q.context){const text=document.createElement("p");text.textContent=q.context;box.appendChild(text);}
+    if(q.visual==="potential-gradient"){
+      const diagram=document.createElement("div");diagram.className="potential-gradient";diagram.setAttribute("role","img");diagram.setAttribute("aria-label","左から地点A 12ボルト、地点B 8ボルト、地点C 4ボルトと、電位が右向きに低くなる図");
+      [["A","12 V"],["B","8 V"],["C","4 V"]].forEach(([place,value])=>{const point=document.createElement("div");point.className="potential-point";point.innerHTML=`<strong>${place}</strong><span>${value}</span>`;diagram.appendChild(point);});
+      const caption=document.createElement("div");caption.className="potential-caption";caption.textContent="電位が低くなる方向 →";box.append(diagram,caption);
+    }
+    if(q.formula){const formula=document.createElement("div");formula.className="context-formula";formula.textContent=q.formula;box.appendChild(formula);}
+  }
   function showQuestion(){
     const q=quiz[index];selected=-1;answered=false;questionStart=Date.now();questionHiddenMs=0;questionHiddenStart=document.hidden?questionStart:0;
     $("count").textContent=`${index+1} / ${quiz.length}`;$("currentScore").textContent=`正解 ${score}`;$("barFill").style.width=`${index/quiz.length*100}%`;
-    $("question").innerHTML=`<span class="badge">${escapeHtml(cfg.badge || cfg.title)}</span><br>${escapeHtml(q.prompt)}`;
+    renderQuestionContext(q);
+    $("question").innerHTML=`<span class="badge">${escapeHtml(q.badge || cfg.badge || cfg.title)}</span><br>${escapeHtml(q.prompt)}`;
     $("choices").replaceChildren();$("writtenArea").replaceChildren();$("feedback").className="feedback";$("feedback").innerHTML="";
     $("answerBtn").disabled=true;$("nextBtn").disabled=true;
     if(q.kind==="number"){
@@ -98,7 +114,7 @@
     const elapsedSeconds=visibleSeconds(questionStart,questionHiddenMs,questionHiddenStart);
     const reason=q.reasonPrompt?$("reasonInput").value.trim():"";
     if(reason)$("reasonInput").disabled=true;
-    results.push({id:q.id,type:q.kind==="number"?"数値入力":"選択式",correct,selected:reason?`${response}／理由：${reason}`:response,answer,prompt:q.prompt,elapsedSeconds});
+    results.push({id:q.id,type:q.kind==="number"?"数値入力":"選択式",correct,selected:reason?`${response}／理由：${reason}`:response,answer,prompt:q.prompt,explanation:q.explanation||"",group:q.group||"",elapsedSeconds});
     $("feedback").className="feedback "+(correct?"ok":"ng");
     $("feedback").innerHTML=`<strong>${correct?"正解！":"不正解"}</strong><br>正解：<strong>${escapeHtml(answer)}</strong>${cfg.showExplanations===false?"":`<div class="formula">${escapeHtml(q.explanation || "")}</div>`}`;
     $("currentScore").textContent=`正解 ${score}`;$("answerBtn").disabled=true;$("nextBtn").disabled=false;
@@ -147,6 +163,11 @@
     $("finalScore").textContent=`${score} / ${quiz.length} 問正解（${rate}%）`;
     $("finalMessage").innerHTML=`<div class="${rate>=70?"pass":"fail"}">${rate>=70?"クリア！":"解説を確認して、もう一度挑戦しましょう。"}</div><div class="session-note">所要時間：${Math.floor(elapsed/60)}分${elapsed%60}秒</div>`;
     $("reviewBtn").hidden=!wrong.length;
+    const review=$("finalReview");
+    if(review&&cfg.showReviewOnFinish){
+      review.hidden=false;
+      review.innerHTML=`<h2>全問の正答と解説</h2>${results.map((item,n)=>`<section class="review-item ${item.correct?"review-ok":"review-ng"}"><h3>${n+1}. ${escapeHtml(item.prompt)}</h3><p><strong>${item.correct?"正解":"不正解"}</strong>　正答：${escapeHtml(item.answer)}</p><p>${escapeHtml(item.explanation)}</p></section>`).join("")}`;
+    }else if(review){review.hidden=true;review.replaceChildren();}
     pendingPayload={authToken:auth.token(),stage:cfg.stage,score,total:quiz.length,elapsed,questionTimes:results.map(x=>x.elapsedSeconds),questionResults:results,userAgent:navigator.userAgent,screen:`${innerWidth}x${innerHeight}`};
     sendPending();
   }
