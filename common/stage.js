@@ -63,11 +63,15 @@
       [["A","12 V"],["B","8 V"],["C","4 V"]].forEach(([place,value])=>{const point=document.createElement("div");point.className="potential-point";point.innerHTML=`<strong>${place}</strong><span>${value}</span>`;diagram.appendChild(point);});
       const caption=document.createElement("div");caption.className="potential-caption";caption.textContent="電位が低くなる方向 →";box.append(diagram,caption);
     }
-    if(q.visual==="circuit-series"||q.visual==="circuit-parallel"){
+    if(q.visual==="circuit-single"||q.visual==="circuit-series"||q.visual==="circuit-parallel"){
       const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
       svg.setAttribute("class","circuit-diagram");svg.setAttribute("viewBox","0 0 580 320");svg.setAttribute("role","img");
       const v=escapeHtml(q.voltage),r1=escapeHtml(q.r1),r2=escapeHtml(q.r2);
-      if(q.visual==="circuit-series"){
+      if(q.visual==="circuit-single"){
+        const rLabel=q.unknown==="R"?"? Ω":`${r1} Ω`,iLabel=q.unknown==="I"?"? A":`${escapeHtml(q.current)} A`,vLabel=q.unknown==="V"?"? V":`${v} V`;
+        svg.setAttribute("aria-label",`抵抗1個と電源をつないだ回路。抵抗${rLabel}、電流${iLabel}、電圧${vLabel}`);
+        svg.innerHTML=`<path class="circuit-wire" d="M55 60H225M355 60H525V230H300M265 230H55V60"/><rect class="circuit-resistor" x="225" y="35" width="130" height="50"/><line class="circuit-battery long" x1="265" y1="185" x2="265" y2="270"/><line class="circuit-battery short" x1="300" y1="200" x2="300" y2="255"/><line class="circuit-current-arrow" x1="90" y1="215" x2="90" y2="112"/><polygon class="circuit-arrowhead" points="90,95 79,117 101,117"/><text class="circuit-text" x="290" y="125">${rLabel}</text><text class="circuit-text left" x="112" y="168">${iLabel}</text><text class="circuit-text" x="282" y="310">${vLabel}</text>`;
+      }else if(q.visual==="circuit-series"){
         svg.setAttribute("aria-label",`電圧${q.voltage}ボルトの電源に、抵抗${q.r1}オームと${q.r2}オームを直列につないだ回路`);
         svg.innerHTML=`<path class="circuit-wire" d="M55 55H125M225 55H335M435 55H525V215H300M265 215H55V55"/><rect class="circuit-resistor" x="125" y="30" width="100" height="50"/><rect class="circuit-resistor" x="335" y="30" width="100" height="50"/><line class="circuit-battery long" x1="265" y1="170" x2="265" y2="255"/><line class="circuit-battery short" x1="300" y1="185" x2="300" y2="240"/><text class="circuit-text" x="175" y="116">R₁ = ${r1} Ω</text><text class="circuit-text" x="385" y="116">R₂ = ${r2} Ω</text><text class="circuit-text" x="282" y="310">${v} V</text>`;
       }else{

@@ -30,9 +30,9 @@
   ];
   levels.level2=ohmCases.map((c,n)=>{
     const id=`ec2-${String(n+1).padStart(2,"0")}`;
-    if(c[0]==="I"){const [,v,r]=c,a=v/r;return mc(id,"電流を求める",`電圧 ${clean(v)} V、抵抗 ${clean(r)} Ω の回路に流れる電流 I は？`,`${clean(a)} A`,[`${clean(v*r)} A`,`${clean(r/v)} A`,`${clean(v+r)} A`],`I = V/R = ${clean(v)} ÷ ${clean(r)} = ${clean(a)} A。`)}
-    if(c[0]==="V"){const [,i,r]=c,a=i*r;return mc(id,"電圧を求める",`抵抗 ${clean(r)} Ω に電流 ${clean(i)} A が流れている。加えた電圧 V は？`,`${clean(a)} V`,[`${clean(i/r)} V`,`${clean(r/i)} V`,`${clean(i+r)} V`],`V = IR = ${clean(i)} × ${clean(r)} = ${clean(a)} V。`)}
-    const [,v,i]=c,a=v/i;return mc(id,"抵抗を求める",`電圧 ${clean(v)} V を加えると電流 ${clean(i)} A が流れた。抵抗 R は？`,`${clean(a)} Ω`,[`${clean(v*i)} Ω`,`${clean(i/v)} Ω`,`${clean(v+i)} Ω`],`R = V/I = ${clean(v)} ÷ ${clean(i)} = ${clean(a)} Ω。`);
+    if(c[0]==="I"){const [,v,r]=c,a=v/r;return mc(id,"電流を求める",`電圧 ${clean(v)} V、抵抗 ${clean(r)} Ω の回路に流れる電流 I は？`,`${clean(a)} A`,[`${clean(v*r)} A`,`${clean(r/v)} A`,`${clean(v+r)} A`],`I = V/R = ${clean(v)} ÷ ${clean(r)} = ${clean(a)} A。`,{visual:"circuit-single",voltage:v,r1:r,unknown:"I"})}
+    if(c[0]==="V"){const [,i,r]=c,a=i*r;return mc(id,"電圧を求める",`抵抗 ${clean(r)} Ω に電流 ${clean(i)} A が流れている。加えた電圧 V は？`,`${clean(a)} V`,[`${clean(i/r)} V`,`${clean(r/i)} V`,`${clean(i+r)} V`],`V = IR = ${clean(i)} × ${clean(r)} = ${clean(a)} V。`,{visual:"circuit-single",current:i,r1:r,unknown:"V"})}
+    const [,v,i]=c,a=v/i;return mc(id,"抵抗を求める",`電圧 ${clean(v)} V を加えると電流 ${clean(i)} A が流れた。抵抗 R は？`,`${clean(a)} Ω`,[`${clean(v*i)} Ω`,`${clean(i/v)} Ω`,`${clean(v+i)} Ω`],`R = V/I = ${clean(v)} ÷ ${clean(i)} = ${clean(a)} Ω。`,{visual:"circuit-single",voltage:v,current:i,unknown:"R"});
   });
 
   const seriesCases=[
