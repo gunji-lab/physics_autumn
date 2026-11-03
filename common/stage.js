@@ -63,6 +63,19 @@
       [["A","12 V"],["B","8 V"],["C","4 V"]].forEach(([place,value])=>{const point=document.createElement("div");point.className="potential-point";point.innerHTML=`<strong>${place}</strong><span>${value}</span>`;diagram.appendChild(point);});
       const caption=document.createElement("div");caption.className="potential-caption";caption.textContent="電位が低くなる方向 →";box.append(diagram,caption);
     }
+    if(q.visual==="circuit-series"||q.visual==="circuit-parallel"){
+      const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+      svg.setAttribute("class","circuit-diagram");svg.setAttribute("viewBox","0 0 580 320");svg.setAttribute("role","img");
+      const v=escapeHtml(q.voltage),r1=escapeHtml(q.r1),r2=escapeHtml(q.r2);
+      if(q.visual==="circuit-series"){
+        svg.setAttribute("aria-label",`電圧${q.voltage}ボルトの電源に、抵抗${q.r1}オームと${q.r2}オームを直列につないだ回路`);
+        svg.innerHTML=`<path class="circuit-wire" d="M55 55H125M225 55H335M435 55H525V215H300M265 215H55V55"/><rect class="circuit-resistor" x="125" y="30" width="100" height="50"/><rect class="circuit-resistor" x="335" y="30" width="100" height="50"/><line class="circuit-battery long" x1="265" y1="170" x2="265" y2="255"/><line class="circuit-battery short" x1="300" y1="185" x2="300" y2="240"/><text class="circuit-text" x="175" y="116">R₁ = ${r1} Ω</text><text class="circuit-text" x="385" y="116">R₂ = ${r2} Ω</text><text class="circuit-text" x="282" y="310">${v} V</text>`;
+      }else{
+        svg.setAttribute("aria-label",`電圧${q.voltage}ボルトの電源に、抵抗${q.r1}オームと${q.r2}オームを並列につないだ回路`);
+        svg.innerHTML=`<path class="circuit-wire" d="M55 110H135M405 110H525V230H300M265 230H55V110M135 110V60H175M295 60H405V110M135 110V160H175M295 160H405V110"/><rect class="circuit-resistor" x="175" y="35" width="120" height="50"/><rect class="circuit-resistor" x="175" y="135" width="120" height="50"/><line class="circuit-battery long" x1="265" y1="185" x2="265" y2="270"/><line class="circuit-battery short" x1="300" y1="200" x2="300" y2="255"/><text class="circuit-text" x="235" y="28">R₁ = ${r1} Ω</text><text class="circuit-text" x="235" y="214">R₂ = ${r2} Ω</text><text class="circuit-text" x="282" y="310">${v} V</text>`;
+      }
+      box.appendChild(svg);
+    }
     if(q.formula){const formula=document.createElement("div");formula.className="context-formula";formula.textContent=q.formula;box.appendChild(formula);}
   }
   function showQuestion(){
