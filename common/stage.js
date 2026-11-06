@@ -67,18 +67,20 @@
     }
     if(q.visual==="circuit-single"||q.visual==="circuit-series"||q.visual==="circuit-parallel"){
       const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-      svg.setAttribute("class","circuit-diagram");svg.setAttribute("viewBox","0 0 580 320");svg.setAttribute("role","img");
+      svg.setAttribute("class","circuit-diagram");svg.setAttribute("viewBox","0 0 620 380");svg.setAttribute("role","img");
       const v=escapeHtml(q.voltage),r1=escapeHtml(q.r1),r2=escapeHtml(q.r2);
+      const battery='<line class="circuit-battery long" x1="285" y1="225" x2="285" y2="315"/><line class="circuit-battery short" x1="335" y1="240" x2="335" y2="300"/>';
+      const batteryParallel='<line class="circuit-battery long" x1="285" y1="250" x2="285" y2="345"/><line class="circuit-battery short" x1="335" y1="267" x2="335" y2="330"/>';
       if(q.visual==="circuit-single"){
         const rLabel=q.unknown==="R"?"? Ω":`${r1} Ω`,iLabel=q.unknown==="I"?"? A":`${escapeHtml(q.current)} A`,vLabel=q.unknown==="V"?"? V":`${v} V`;
         svg.setAttribute("aria-label",`抵抗1個と電源をつないだ回路。抵抗${rLabel}、電流${iLabel}、電圧${vLabel}`);
-        svg.innerHTML=`<path class="circuit-wire" d="M55 60H225M355 60H525V230H300M265 230H55V60"/><rect class="circuit-resistor" x="225" y="35" width="130" height="50"/><line class="circuit-battery long" x1="265" y1="185" x2="265" y2="270"/><line class="circuit-battery short" x1="300" y1="200" x2="300" y2="255"/><line class="circuit-current-arrow" x1="90" y1="215" x2="90" y2="112"/><polygon class="circuit-arrowhead" points="90,95 79,117 101,117"/><text class="circuit-text" x="290" y="125">${rLabel}</text><text class="circuit-text left" x="112" y="168">${iLabel}</text><text class="circuit-text" x="282" y="310">${vLabel}</text>`;
+        svg.innerHTML=`<path class="circuit-wire" d="M70 105H235M385 105H550V270H335M285 270H70V105"/><rect class="circuit-resistor" x="235" y="80" width="150" height="50"/>${battery}<line class="circuit-current-arrow" x1="105" y1="235" x2="105" y2="155"/><polygon class="circuit-arrowhead" points="105,140 95,160 115,160"/><text class="circuit-text" x="310" y="62">${rLabel}</text><text class="circuit-text left" x="125" y="198">${iLabel}</text><text class="circuit-text" x="310" y="350">${vLabel}</text>`;
       }else if(q.visual==="circuit-series"){
         svg.setAttribute("aria-label",`電圧${q.voltage}ボルトの電源に、抵抗${q.r1}オームと${q.r2}オームを直列につないだ回路`);
-        svg.innerHTML=`<path class="circuit-wire" d="M55 55H125M225 55H335M435 55H525V215H300M265 215H55V55"/><rect class="circuit-resistor" x="125" y="30" width="100" height="50"/><rect class="circuit-resistor" x="335" y="30" width="100" height="50"/><line class="circuit-battery long" x1="265" y1="170" x2="265" y2="255"/><line class="circuit-battery short" x1="300" y1="185" x2="300" y2="240"/><text class="circuit-text" x="175" y="116">R₁ = ${r1} Ω</text><text class="circuit-text" x="385" y="116">R₂ = ${r2} Ω</text><text class="circuit-text" x="282" y="310">${v} V</text>`;
+        svg.innerHTML=`<path class="circuit-wire" d="M60 105H135M255 105H365M485 105H560V270H335M285 270H60V105"/><rect class="circuit-resistor" x="135" y="80" width="120" height="50"/><rect class="circuit-resistor" x="365" y="80" width="120" height="50"/>${battery}<text class="circuit-text" x="195" y="62">R₁　${r1} Ω</text><text class="circuit-text" x="425" y="62">R₂　${r2} Ω</text><text class="circuit-text" x="310" y="350">${v} V</text>`;
       }else{
         svg.setAttribute("aria-label",`電圧${q.voltage}ボルトの電源に、抵抗${q.r1}オームと${q.r2}オームを並列につないだ回路`);
-        svg.innerHTML=`<path class="circuit-wire" d="M55 110H135M405 110H525V230H300M265 230H55V110M135 110V60H175M295 60H405V110M135 110V160H175M295 160H405V110"/><rect class="circuit-resistor" x="175" y="35" width="120" height="50"/><rect class="circuit-resistor" x="175" y="135" width="120" height="50"/><line class="circuit-battery long" x1="265" y1="185" x2="265" y2="270"/><line class="circuit-battery short" x1="300" y1="200" x2="300" y2="255"/><text class="circuit-text" x="235" y="28">R₁ = ${r1} Ω</text><text class="circuit-text" x="235" y="214">R₂ = ${r2} Ω</text><text class="circuit-text" x="282" y="310">${v} V</text>`;
+        svg.innerHTML=`<path class="circuit-wire" d="M60 170H150M470 170H560V300H335M285 300H60V170M150 170V95H240M380 95H470V170M150 170V215H240M380 215H470V170"/><rect class="circuit-resistor" x="240" y="70" width="140" height="50"/><rect class="circuit-resistor" x="240" y="190" width="140" height="50"/><circle class="circuit-junction" cx="150" cy="170" r="7"/><circle class="circuit-junction" cx="470" cy="170" r="7"/>${batteryParallel}<text class="circuit-text" x="310" y="52">R₁　${r1} Ω</text><text class="circuit-text" x="310" y="178">R₂　${r2} Ω</text><text class="circuit-text" x="310" y="372">${v} V</text>`;
       }
       box.appendChild(svg);
     }
