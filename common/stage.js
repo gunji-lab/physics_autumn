@@ -9,6 +9,7 @@
   let sessionStart=0,questionStart=0,hiddenStart=0,hiddenMs=0,questionHiddenMs=0,questionHiddenStart=0;
   const shuffle = values => {const a=[...values];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
   const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  const formatText = value => escapeHtml(value).replace(/_([AB])/g,"<sub>$1</sub>");
   const questionWithChoices = question => {
     if (question.kind === "number") return {...question};
     const answerText=question.choices[question.answer];
@@ -87,7 +88,7 @@
     const q=quiz[index];selected=-1;answered=false;questionStart=Date.now();questionHiddenMs=0;questionHiddenStart=document.hidden?questionStart:0;
     $("count").textContent=`${index+1} / ${quiz.length}`;$("currentScore").textContent=`正解 ${score}`;$("barFill").style.width=`${index/quiz.length*100}%`;
     renderQuestionContext(q);
-    $("question").innerHTML=`<span class="badge">${escapeHtml(q.badge || cfg.badge || cfg.title)}</span><br>${escapeHtml(q.prompt)}`;
+    $("question").innerHTML=`<span class="badge">${escapeHtml(q.badge || cfg.badge || cfg.title)}</span><br>${formatText(q.prompt)}`;
     $("choices").replaceChildren();$("writtenArea").replaceChildren();$("feedback").className="feedback";$("feedback").innerHTML="";
     $("answerBtn").disabled=true;$("nextBtn").disabled=true;
     if(q.kind==="number"){
@@ -107,7 +108,7 @@
       }
     }else{
       q.choices.forEach((choice,n)=>{
-        const button=document.createElement("button");button.className="choice";button.textContent=`${["①","②","③","④","⑤"][n] || n+1}　${choice}`;
+        const button=document.createElement("button");button.className="choice";button.innerHTML=`${["①","②","③","④","⑤"][n] || n+1}　${formatText(choice)}`;
         button.addEventListener("click",()=>{if(answered)return;selected=n;$("choices").querySelectorAll(".choice").forEach(x=>x.classList.remove("selected"));button.classList.add("selected");updateAnswerReady();});
         $("choices").appendChild(button);
       });
@@ -147,7 +148,7 @@
     if(reason)$("reasonInput").disabled=true;
     results.push({id:q.id,type:q.kind==="number"?"数値入力":"選択式",correct,selected:reason?`${response}／理由：${reason}`:response,answer,prompt:q.prompt,explanation:q.explanation||"",group:q.group||"",elapsedSeconds});
     $("feedback").className="feedback "+(correct?"ok":"ng");
-    $("feedback").innerHTML=`<strong>${correct?"正解！":"不正解"}</strong><br>正解：<strong>${escapeHtml(answer)}</strong>${cfg.showExplanations===false?"":`<div class="formula">${escapeHtml(q.explanation || "")}</div>`}`;
+    $("feedback").innerHTML=`<strong>${correct?"正解！":"不正解"}</strong><br>正解：<strong>${formatText(answer)}</strong>${cfg.showExplanations===false?"":`<div class="formula">${formatText(q.explanation || "")}</div>`}`;
     $("currentScore").textContent=`正解 ${score}`;$("answerBtn").disabled=true;$("nextBtn").disabled=false;
   }
   function confirmSave(attempt=0){
@@ -197,7 +198,7 @@
     const review=$("finalReview");
     if(review&&cfg.showReviewOnFinish){
       review.hidden=false;
-      review.innerHTML=`<h2>全問の正答と解説</h2>${results.map((item,n)=>`<section class="review-item ${item.correct?"review-ok":"review-ng"}"><h3>${n+1}. ${escapeHtml(item.prompt)}</h3><p><strong>${item.correct?"正解":"不正解"}</strong>　正答：${escapeHtml(item.answer)}</p><p>${escapeHtml(item.explanation)}</p></section>`).join("")}`;
+      review.innerHTML=`<h2>全問の正答と解説</h2>${results.map((item,n)=>`<section class="review-item ${item.correct?"review-ok":"review-ng"}"><h3>${n+1}. ${formatText(item.prompt)}</h3><p><strong>${item.correct?"正解":"不正解"}</strong>　正答：${formatText(item.answer)}</p><p>${formatText(item.explanation)}</p></section>`).join("")}`;
     }else if(review){review.hidden=true;review.replaceChildren();}
     pendingPayload={authToken:auth.token(),stage:cfg.stage,score,total:quiz.length,elapsed,questionTimes:results.map(x=>x.elapsedSeconds),questionResults:results,userAgent:navigator.userAgent,screen:`${innerWidth}x${innerHeight}`};
     sendPending();
