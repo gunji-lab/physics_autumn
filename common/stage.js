@@ -36,8 +36,9 @@
     return cfg.shuffleQuestions===false?selected:shuffle(selected);
   }
   function start(source=null){
-    const sourceQuestions=source || cfg.questions;
-    quiz=selectQuestions(sourceQuestions).map(questionWithChoices);wrong=[];index=0;score=0;results=[];
+    const useSet=!source&&Array.isArray(cfg.questionSets)&&cfg.questionSets.length;
+    const sourceQuestions=source || (useSet?shuffle(cfg.questionSets)[0]:cfg.questions);
+    quiz=(useSet?[...sourceQuestions]:selectQuestions(sourceQuestions)).map(questionWithChoices);wrong=[];index=0;score=0;results=[];
     sessionStart=Date.now();hiddenMs=0;hiddenStart=document.hidden?sessionStart:0;
     setScreen("quizScreen");showQuestion();
   }
