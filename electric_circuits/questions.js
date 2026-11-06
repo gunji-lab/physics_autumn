@@ -14,7 +14,10 @@
   const currentCases=[
     ["Q",2,5],["Q",3,4],["Q",0.5,8],["Q",1.5,6],["Q",0.2,30],["Q",4,2.5],["Q",0.8,15],
     ["I",18,6],["I",24,8],["I",7.5,5],["I",12,30],["I",2.4,12],["I",45,15],["I",0.8,4],
-    ["t",20,4],["t",36,6],["t",7.5,1.5],["t",12,0.4],["t",2.4,0.8],["t",50,2.5]
+    ["t",20,4],["t",36,6],["t",7.5,1.5],["t",12,0.4],["t",2.4,0.8],["t",50,2.5],
+    ["Q",2.5,4],["Q",1.2,5],["Q",0.6,20],["Q",3.5,2],["Q",4.5,6],["Q",0.3,40],["Q",2.4,2.5],
+    ["I",16,4],["I",13.5,5],["I",6.4,8],["I",21,6],["I",9.6,12],["I",14,5],["I",28,8],
+    ["t",15,3],["t",22.5,4.5],["t",8.4,1.2],["t",18,2.5],["t",6,0.5],["t",9,1.5]
   ];
   levels.level1=currentCases.map((c,n)=>{
     const id=`ec1-${String(n+1).padStart(2,"0")}`;
@@ -26,7 +29,10 @@
   const ohmCases=[
     ["I",12,4],["I",6,3],["I",9,6],["I",24,8],["I",5,10],["I",18,12],["I",3,15],
     ["V",2,5],["V",0.5,12],["V",3,8],["V",1.5,10],["V",0.2,30],["V",4,2.5],["V",0.8,15],
-    ["R",12,3],["R",6,2],["R",9,1.5],["R",24,4],["R",5,0.5],["R",18,1.5]
+    ["R",12,3],["R",6,2],["R",9,1.5],["R",24,4],["R",5,0.5],["R",18,1.5],
+    ["I",15,5],["I",14,4],["I",16,20],["I",21,6],["I",10,4],["I",25,10],["I",8,5],
+    ["V",2.5,4],["V",1.2,5],["V",0.8,15],["V",3.5,6],["V",4.5,4],["V",0.6,20],["V",2.4,2.5],
+    ["R",15,3],["R",14,2],["R",16,0.8],["R",21,3.5],["R",10,2.5],["R",25,2.5]
   ];
   levels.level2=ohmCases.map((c,n)=>{
     const id=`ec2-${String(n+1).padStart(2,"0")}`;
@@ -39,7 +45,7 @@
     [18,3,6],[12,2,4],[20,4,6],[15,2,3],[24,4,8],[30,5,10],[16,3,5],[21,2,5],[36,6,12],[14,3,4],
     [27,3,6],[10,2,3],[32,6,10],[18,2,4],[40,5,15],[24,3,9],[35,5,2],[28,4,10],[45,5,10],[22,4,7]
   ];
-  const seriesSets=seriesCases.slice(0,10).map(([v,r1,r2],n)=>{
+  const seriesSets=seriesCases.map(([v,r1,r2],n)=>{
     const rt=r1+r2,i=v/rt,v1=i*r1,extra={visual:"circuit-series",voltage:v,r1,r2};
     const q1=mc(`ec3-${String(n+1).padStart(2,"0")}-1`,"1. 合成抵抗",`図の直列回路の合成抵抗は？`,`${clean(rt)} Ω`,[`${clean(r1*r2)} Ω`,`${clean(Math.abs(r1-r2))} Ω`,`${clean(r1*r2/rt)} Ω`],`直列回路では R = R₁ + R₂ = ${r1} + ${r2} = ${clean(rt)} Ω。`,extra);
     const q2=n%2===0
@@ -53,7 +59,7 @@
     [18,3,6],[12,4,6],[24,6,8],[20,5,5],[30,5,10],[16,4,8],[15,3,5],[36,6,12],[14,2,7],[10,2,5],
     [24,4,12],[18,6,9],[12,3,4],[40,8,10],[21,3,7],[30,10,15],[16,2,8],[27,3,9],[20,5,20],[24,8,12]
   ];
-  const parallelSets=parallelCases.slice(0,10).map(([v,r1,r2],n)=>{
+  const parallelSets=parallelCases.map(([v,r1,r2],n)=>{
     const i1=v/r1,i2=v/r2,i=i1+i2,rt=v/i,extra={visual:"circuit-parallel",voltage:v,r1,r2};
     const q1=mc(`ec4-${String(n+1).padStart(2,"0")}-1`,"1. 合成抵抗",`図の並列回路の合成抵抗は？`,`${clean(rt)} Ω`,[`${clean(r1+r2)} Ω`,`${clean(r1*r2)} Ω`,`${clean(Math.abs(r1-r2))} Ω`],`1/R = 1/R₁ + 1/R₂。R = R₁R₂/(R₁+R₂) = ${r1}×${r2}/(${r1}+${r2}) = ${clean(rt)} Ω。`,extra);
     const correct=`全体 ${clean(i)} A、R₁ ${clean(i1)} A、R₂ ${clean(i2)} A`;
@@ -63,8 +69,8 @@
   levels.level4=parallelSets.flat();
 
   const mixed=[];
-  seriesCases.slice(0,10).forEach(([v,r1,r2],n)=>{const rt=r1+r2,i=v/rt,id=`ec5-s${String(n+1).padStart(2,"0")}`;mixed.push(mc(id,"直列回路",`図の回路全体に流れる電流は？`,`${clean(i)} A`,[`${clean(v/r1)} A`,`${clean(v/r2)} A`,`${clean(v*rt)} A`],`直列回路なので合成抵抗は ${r1}+${r2}=${clean(rt)} Ω。I=${v}÷${clean(rt)}=${clean(i)} A。`,{visual:"circuit-series",voltage:v,r1,r2,badge:"直列か並列かを見分けよう"}));});
-  parallelCases.slice(0,10).forEach(([v,r1,r2],n)=>{const i1=v/r1,i2=v/r2,i=i1+i2,id=`ec5-p${String(n+1).padStart(2,"0")}`;mixed.push(mc(id,"並列回路",`図の回路全体に流れる電流は？`,`${clean(i)} A`,[`${clean(i1)} A`,`${clean(i2)} A`,`${clean(v/(r1+r2))} A`],`並列回路なので I=I₁+I₂=${clean(i1)}+${clean(i2)}=${clean(i)} A。`,{visual:"circuit-parallel",voltage:v,r1,r2,badge:"直列か並列かを見分けよう"}));});
+  seriesCases.forEach(([v,r1,r2],n)=>{const rt=r1+r2,i=v/rt,id=`ec5-s${String(n+1).padStart(2,"0")}`;mixed.push(mc(id,"直列回路",`図の回路全体に流れる電流は？`,`${clean(i)} A`,[`${clean(v/r1)} A`,`${clean(v/r2)} A`,`${clean(v*rt)} A`],`直列回路なので合成抵抗は ${r1}+${r2}=${clean(rt)} Ω。I=${v}÷${clean(rt)}=${clean(i)} A。`,{visual:"circuit-series",voltage:v,r1,r2,badge:"直列か並列かを見分けよう"}));});
+  parallelCases.forEach(([v,r1,r2],n)=>{const i1=v/r1,i2=v/r2,i=i1+i2,id=`ec5-p${String(n+1).padStart(2,"0")}`;mixed.push(mc(id,"並列回路",`図の回路全体に流れる電流は？`,`${clean(i)} A`,[`${clean(i1)} A`,`${clean(i2)} A`,`${clean(v/(r1+r2))} A`],`並列回路なので I=I₁+I₂=${clean(i1)}+${clean(i2)}=${clean(i)} A。`,{visual:"circuit-parallel",voltage:v,r1,r2,badge:"直列か並列かを見分けよう"}));});
   levels.level5=mixed;
 
   window.CIRCUIT_LEVELS={};
