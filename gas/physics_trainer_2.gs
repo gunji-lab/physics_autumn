@@ -10,8 +10,10 @@ const RANKING_SHEET_NAME = "RankingSummary";
 const SCHOOL_DOMAIN = "toyo.jp";
 const AUTH_TOKEN_HOURS = 12;
 const AUTH_SECRET_PROPERTY = "PHYSICS_AUTUMN_AUTH_SECRET";
+// 動作確認中は教員アドレスも通常の学生と同じ経路で扱う。
+// ログの学籍番号欄には GUNJI と記録される。
 const STAFF_TEST_STUDENT_IDS = {
-  "gunji@toyo.jp": "ADMIN_GUNJI"
+  "gunji@toyo.jp": "GUNJI"
 };
 const GUNJI_STUDENT_TEST_ID = "GUNJI_TEST";
 // 新システム公開後、そのURLに変更する（末尾の / を含めない）。
