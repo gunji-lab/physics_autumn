@@ -598,13 +598,15 @@ function buildUniversityAccountGuide_(detail) {
 }
 
 function saveAuthenticatedResult(payload) {
-  // GAS側の大学アカウントを正として保存する。
-  // ブラウザ側トークンや別デプロイの秘密鍵に依存させない。
-  const studentId = getAuthenticatedStudentId_();
-  const safePayload = Object.assign({}, payload || {}, {
-    studentId,
-    authToken: createAuthToken_(studentId)
-  });
+  // 学生のブラウザに発行済みの署名付きトークンを検証する。
+  // 保存時に Session.getActiveUser() を再取得すると、実行方式によっては
+  // 学生のメールアドレスが空になり、教員だけ保存できる状態になるため使わない。
+  const verified = verifyAuthToken_(payload && payload.authToken);
+  if (!verified.ok) {
+    throw new Error("ログイン情報を確認できませんでした。大学アカウントでログインし直してください。");
+  }
+  const studentId = verified.studentId;
+  const safePayload = Object.assign({}, payload || {}, { studentId });
   const output = doPost({ postData: { contents: JSON.stringify(safePayload) } });
   const result = JSON.parse(output.getContent());
   if (result.result !== "success") throw new Error(result.message || "結果を保存できませんでした。");
