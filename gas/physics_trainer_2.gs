@@ -717,7 +717,10 @@ function verifyAuthToken_(token) {
   const body = studentId + "." + parts[1];
   if (!studentId || !expires || expires < Date.now()) return { ok: false };
   if (signAuthBody_(body) !== parts[2]) return { ok: false };
-  return { ok: true, studentId };
+  // 切り分け中は、以前発行済みの教員用トークンも通常学生として扱う。
+  // これにより、ブラウザに古い12時間トークンが残っていても GUNJI で保存される。
+  const normalizedStudentId = studentId === "ADMIN_GUNJI" ? "GUNJI" : studentId;
+  return { ok: true, studentId: normalizedStudentId };
 }
 
 function signAuthBody_(body) {
