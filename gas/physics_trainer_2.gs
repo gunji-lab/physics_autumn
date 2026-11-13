@@ -7,6 +7,7 @@ const LOG_SHEET_NAME = "Log";
 const COUNT_SHEET_NAME = "Counts";
 const QUESTION_SHEET_NAME = "QuestionTimes";
 const RANKING_SHEET_NAME = "RankingSummary";
+const LOG_SPREADSHEET_ID = "1UctfniJt0dP4tDNtBLOGZqxymy7pfj1zKryQlofr-M0";
 const SCHOOL_DOMAIN = "toyo.jp";
 const AUTH_TOKEN_HOURS = 12;
 const AUTH_SECRET_PROPERTY = "PHYSICS_AUTUMN_AUTH_SECRET";
@@ -19,6 +20,10 @@ const GUNJI_STUDENT_TEST_ID = "GUNJI_TEST";
 // 新システム公開後、そのURLに変更する（末尾の / を含めない）。
 const NEW_TRAINER_BASE_URL = "https://gunji-lab.github.io/physics_autumn";
 
+function getLogSpreadsheet_() {
+  return SpreadsheetApp.openById(LOG_SPREADSHEET_ID);
+}
+
 function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
@@ -28,7 +33,7 @@ function doPost(e) {
       throw new Error("No postData. HTMLからPOSTしてください。");
     }
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getLogSpreadsheet_();
 
     const logSheet = getOrCreateSheet_(ss, LOG_SHEET_NAME);
     const countSheet = getOrCreateSheet_(ss, COUNT_SHEET_NAME);
@@ -156,7 +161,7 @@ function setupHeaders_(logSheet, countSheet, questionSheet) {
 }
 
 function initializeAutumnSheets() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   if (!ss) throw new Error("記録用スプレッドシートに紐づいたGASから実行してください。");
   const logSheet = getOrCreateSheet_(ss, LOG_SHEET_NAME);
   const countSheet = getOrCreateSheet_(ss, COUNT_SHEET_NAME);
@@ -234,7 +239,7 @@ function updateAttempts_(countSheet, studentId, stage, now) {
  * Apps Script エディタの関数一覧から選び、必要なときに1回だけ実行する。
  */
 function rebuildCountsFromLog() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const logSheet = ss.getSheetByName(LOG_SHEET_NAME);
   if (!logSheet || logSheet.getLastRow() < 2) {
     throw new Error("Logシートに再集計できる記録がありません。");
@@ -623,7 +628,7 @@ function saveAuthenticatedResult(payload) {
 }
 
 function debugLatestAdminGunjiRows() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const logSheet = ss.getSheetByName(LOG_SHEET_NAME);
   const questionSheet = ss.getSheetByName(QUESTION_SHEET_NAME);
   const logs = logSheet ? readSheetObjects_(logSheet)
@@ -751,7 +756,7 @@ const LECTURE_EXERCISE_QUESTIONS_ = [
 
 function getLectureExerciseSnapshot() {
   if (getAuthenticatedStudentId_() !== "ADMIN_GUNJI") throw new Error("教員アカウント専用です。");
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const logSheet = ss.getSheetByName(LOG_SHEET_NAME);
   const questionSheet = ss.getSheetByName(QUESTION_SHEET_NAME);
   const logs = logSheet ? readSheetObjects_(logSheet) : [];
@@ -820,7 +825,7 @@ function buildLectureExerciseSnapshot_(logs, questionRows, enrollmentCount) {
 function getTeacherDashboardData(filters) {
   filters = filters || {};
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const logSheet = ss.getSheetByName(LOG_SHEET_NAME);
   const countSheet = ss.getSheetByName(COUNT_SHEET_NAME);
 
@@ -883,7 +888,7 @@ function getTeacherDashboardData(filters) {
 function getTeacherQuestionData(filters) {
   filters = filters || {};
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const questionSheet = ss.getSheetByName(QUESTION_SHEET_NAME);
   const questionRows = questionSheet ? readSheetObjects_(questionSheet) : [];
   const filteredQuestionSource =
@@ -907,7 +912,7 @@ function getTeacherQuestionData(filters) {
 function getTeacherStudentLinksData(filters) {
   filters = filters || {};
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const logSheet = ss.getSheetByName(LOG_SHEET_NAME);
   const countSheet = ss.getSheetByName(COUNT_SHEET_NAME);
 
@@ -941,7 +946,7 @@ function getTeacherStudentLinksData(filters) {
 function getTeacherFinalMockWrongData(filters) {
   filters = filters || {};
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const questionSheet = ss.getSheetByName(QUESTION_SHEET_NAME);
   const questionRows = questionSheet ? readSheetObjects_(questionSheet) : [];
   const filteredQuestionSource =
@@ -965,7 +970,7 @@ function getTeacherFinalMockWrongData(filters) {
 function getTeacherActiveAnswerData(filters) {
   filters = filters || {};
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const questionSheet = ss.getSheetByName(QUESTION_SHEET_NAME);
   const questionRows = questionSheet ? readSheetObjects_(questionSheet) : [];
   const filteredQuestionSource =
@@ -1110,7 +1115,7 @@ function buildStudentLeaderboards_(logs) {
 }
 
 function refreshRankingSummary() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const logSheet = ss.getSheetByName(LOG_SHEET_NAME);
   const rankingSheet = getOrCreateSheet_(ss, RANKING_SHEET_NAME);
   const logs = logSheet ? readSheetObjects_(logSheet)
@@ -1231,7 +1236,7 @@ function buildRankingSummaryRows_(logs) {
 }
 
 function readRankingSummaryRows_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const sheet = ss.getSheetByName(RANKING_SHEET_NAME);
   if (!sheet || sheet.getLastRow() < 2) return [];
   return readSheetObjects_(sheet).filter(row => {
@@ -1804,7 +1809,7 @@ function isSafeJsonpCallback_(callback) {
 }
 
 function hasRecentStudentAttempt_(studentId, minutes) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const logSheet = ss.getSheetByName(LOG_SHEET_NAME);
   if (!logSheet || logSheet.getLastRow() < 2) return false;
 
@@ -1863,7 +1868,7 @@ function getStudentDashboardSecret_() {
 }
 
 function getStudentDashboardData_(studentId) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getLogSpreadsheet_();
   const logSheet = ss.getSheetByName(LOG_SHEET_NAME);
   const targetId = String(studentId || "").trim();
 
